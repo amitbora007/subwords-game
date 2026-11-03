@@ -169,10 +169,73 @@ curl -X POST http://localhost:8001/api/game/switch-turn \
 
 ### 4.5 Trigger Computer AI Turn (`POST /api/game/computer-turn`)
 ```bash
-curl -X POST http://localhost:8001/api/game/computer-turn \
+curl -X POST http://localhost:8000/api/game/computer-turn \
   -H "Content-Type: application/json" \
   -d '{
     "game_id": "YOUR_GAME_ID",
     "difficulty": "medium"
   }'
 ```
+
+---
+
+## 5. Render.com Cloud Deployment Guide
+
+The repository includes a ready-to-use **Render Blueprint** (`render.yaml`) to deploy both the FastAPI backend and React frontend with unified environment coordination.
+
+### 5.1 Step 1: Provision a Free MongoDB Atlas Database (3 mins)
+Since Render web services are stateless, production data is stored in MongoDB Atlas:
+1. Sign up / Log in to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Create a **Free Shared Cluster (M0)**.
+3. Under **Security -> Database Access**, create a user (e.g. `subwords_admin` with a secure password).
+4. Under **Security -> Network Access**, click **Add IP Address** -> select **Allow Access from Anywhere (`0.0.0.0/0`)**.
+5. Click **Connect** -> **Drivers (Python)** -> Copy your connection URI:
+   ```
+   mongodb+srv://subwords_admin:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority
+   ```
+
+---
+
+### 5.2 Step 2: Deploy Using Render Blueprint (Recommended)
+1. Push your repository to GitHub.
+2. Log in to [Render Dashboard](https://dashboard.render.com).
+3. Click **New +** -> **Blueprint**.
+4. Connect your GitHub repository (`subwords-game`).
+5. Render reads [`render.yaml`](../render.yaml) and automatically creates:
+   - **`subwords-backend`** (Python Web Service)
+   - **`subwords-frontend`** (Static Site with SPA rewrite rules)
+6. When prompted for `MONGO_URL`, paste your MongoDB Atlas URI.
+7. Click **Apply**. Both services will build and deploy automatically!
+
+---
+
+### 5.3 Step 3: Manual Deployment (Alternative)
+
+If you prefer configuring services manually via the Render dashboard:
+
+#### A. Backend Web Service:
+- **Environment**: Python
+- **Root Directory**: `backend`
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- **Environment Variables**:
+  | Variable | Value |
+  | :--- | :--- |
+  | `MONGO_URL` | `mongodb+srv://...` (your Atlas URI) |
+  | `DB_NAME` | `subwords_db` |
+  | `ALLOWED_ORIGINS` | `*` (or your frontend URL) |
+  | `PYTHON_VERSION` | `3.11.9` |
+
+#### B. Frontend Static Site:
+- **Root Directory**: `frontend`
+- **Build Command**: `npm install && npm run build`
+- **Publish Directory**: `dist`
+- **Redirects / Rewrites**:
+  - Type: `Rewrite`
+  - Source: `/*`
+  - Destination: `/index.html`
+- **Environment Variables**:
+  | Variable | Value |
+  | :--- | :--- |
+  | `VITE_BACKEND_URL` | `https://your-backend-name.onrender.com` |
+

@@ -1,7 +1,18 @@
 import axios from 'axios';
 import { GameState, GameMode, Difficulty, WordSubmitResult } from '../types/game';
 
-const baseURL = import.meta.env.VITE_BACKEND_URL || '/api';
+const getBaseURL = (): string => {
+  const raw = import.meta.env.VITE_BACKEND_URL;
+  if (!raw || !raw.trim()) return '/api';
+  let formatted = raw.trim();
+  if (!formatted.startsWith('http://') && !formatted.startsWith('https://') && !formatted.startsWith('/')) {
+    formatted = `https://${formatted}`;
+  }
+  formatted = formatted.replace(/\/+$/, '');
+  return formatted.endsWith('/api') ? formatted : `${formatted}/api`;
+};
+
+const baseURL = getBaseURL();
 
 const api = axios.create({
   baseURL,

@@ -141,6 +141,13 @@ npm run dev
 ```
 - Web Application is available at: `http://localhost:5173`
 
+### 4. Deploy to Render Cloud (Blueprint)
+The repository includes an infrastructure-as-code [`render.yaml`](render.yaml) specification:
+1. Push to GitHub and go to [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** -> **Blueprint** -> Select this repository.
+3. Supply your free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) connection string for `MONGO_URL`.
+4. Render automatically orchestrates the FastAPI web service, React SPA static site, and environment linking! See the [Render Deployment Guide](docs/USAGE.md#5-rendercom-cloud-deployment-guide) for details.
+
 ---
 
 ## 📁 Project Structure
