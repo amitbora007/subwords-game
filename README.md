@@ -31,9 +31,8 @@ A comprehensive documentation suite is maintained in the [`docs/`](docs/) direct
 ## 🎮 Game Features & Mechanics (v2.0)
 
 - **6+ Character Root Words**: Every match provides a base word with rich anagram permutations.
-- **Configurable Session Timers**: Choose turn durations of 30s, 60s, 90s, 120s, or 180s.
-- **Compounding Multiplier Scoring**: Points scale with both length and volume:
-  $$\text{Total Score} = \left( \sum_{i=1}^{N} \text{Length}(W_i) \right) \times N$$
+- **Word-Length Scoring**: Each valid word earns points equal to its length (1 point per letter):
+  $$\text{Total Score} = \sum_{i=1}^{N} \text{Length}(W_i)$$
 - **Competitor Word Lockout**: Subwords claimed by Player 1 cannot be reused by the competitor!
 - **Single Player vs AI**: Play against an algorithmic AI bot with 3 difficulty tiers (Easy, Medium, Hard).
 - **Humanized Real-Time AI Playback**: Watch the AI search for words and type them out letter-by-letter live on the arena board with sound effects, realistic pacing (1.1s–1.9s delays), live score compounding, and a "Skip to Results" option.
@@ -203,5 +202,5 @@ subwords/
 2. Words must be at least 3 letters long.
 3. Letters cannot be used more times than they appear in the main word.
 4. Words already claimed by a competitor cannot be reused.
-5. Score compounds: $\text{Total Score} = (\text{Sum of Lengths}) \times (\text{Total Words})$.
+5. Each valid subword earns points equal to its length (1 pt per letter).
 6. Highest score wins!

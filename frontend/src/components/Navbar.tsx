@@ -92,12 +92,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onHomeClick }) => {
               </div>
 
               <div className="flex gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
-                <span className="text-emerald-400 font-game font-bold text-base">∑×</span>
+                <span className="text-emerald-400 font-game font-bold text-base">∑L</span>
                 <div>
-                  <h4 className="font-semibold text-white mb-0.5">Multiplier Scoring Formula</h4>
+                  <h4 className="font-semibold text-white mb-0.5">Length-Based Scoring</h4>
                   <p className="text-slate-400 text-xs">
-                    <span className="text-emerald-300 font-mono font-semibold">Score = (Sum of Word Lengths) × (Total Words Submitted)</span>.
-                    Every additional word you find multiplies the value of all previous words!
+                    <span className="text-emerald-300 font-mono font-semibold">Score = Sum of Valid Word Lengths (1 pt per letter)</span>.
+                    Find longer words to earn more points (e.g., 6-letter word = 6 pts, 3-letter word = 3 pts).
                   </p>
                 </div>
               </div>

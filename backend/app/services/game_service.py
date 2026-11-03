@@ -10,20 +10,21 @@ class GameService:
     @staticmethod
     def calculate_multiplier_score(words: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], int, int, int]:
         """
-        Calculate score using compounding multiplier formula:
-        Total Score = (Sum of Valid Word Lengths) * (Count of Valid Words)
+        Calculate score where each valid word earns points equal to its length:
+        Points per word = Length of word
+        Total Score = Sum of lengths of all valid words (Length * Count of that length)
         Returns: (updated_words, word_count, base_points, total_score)
         """
         valid_words = [w for w in words if w.get("valid", False)]
         word_count = len(valid_words)
-        base_points = sum(w.get("length", len(w.get("word", ""))) for w in valid_words)
-        total_score = base_points * word_count
+        total_score = sum(w.get("length", len(w.get("word", ""))) for w in valid_words)
+        base_points = total_score
 
         updated_words = list(words)
         for w in updated_words:
             if w.get("valid", False):
                 length = w.get("length", len(w.get("word", "")))
-                w["points"] = length * word_count
+                w["points"] = length
 
         return updated_words, word_count, base_points, total_score
 

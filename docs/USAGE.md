@@ -95,8 +95,8 @@
 4. Select turn time limit (e.g., 60s) $\to$ Enter your name $\to$ Click **"Enter Arena"**.
 5. **Your Turn**:
    - Tap letter tiles or type on your keyboard to form valid subwords from the 6+ letter root.
-   - Press **Enter** to submit. Watch your total score compound:
-     $$\text{Score} = (\text{Sum of Lengths}) \times (\text{Total Words})$$
+   - Press **Enter** to submit. Watch your total score increase (1 point per letter):
+     $$\text{Score} = \sum \text{Length}(W_i)$$
    - Click **"Finish Turn Early"** or let the timer expire.
 6. **AI Turn (Humanized Real-Time Playback)**:
    - The AI takes its turn live directly on the arena board!

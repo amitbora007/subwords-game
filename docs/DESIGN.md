@@ -33,19 +33,19 @@ def can_form_word(main_word: str, sub_word: str) -> bool:
 
 ---
 
-### 1.2 Compounding Multiplier Scoring Engine
+### 1.2 Word-Length Scoring Engine
 
-The scoring system dynamically rewards both finding longer words and accumulating higher word counts:
-$$\text{Score}(P) = \left( \sum_{i=1}^{N} \text{Length}(W_i) \right) \times N$$
+The scoring system calculates points directly from the length of each valid submitted word (1 point per letter):
+$$\text{Score}(P) = \sum_{i=1}^{N} \text{Length}(W_i)$$
 
 ```
-Example Progression:
-- Word 1 (Length 5): Sum = 5,  Count = 1  => Score = 5 * 1 = 5
-- Word 2 (Length 3): Sum = 8,  Count = 2  => Score = 8 * 2 = 16
-- Word 3 (Length 4): Sum = 12, Count = 3  => Score = 12 * 3 = 36
-- Word 4 (Length 6): Sum = 18, Count = 4  => Score = 18 * 4 = 72
+Example:
+- Player 1: ISLAND (6L), LAND (4L), AND (3L)
+  Score = 6*1 + 4*1 + 3*1 = 13 points
+- Player 2: LAD (3L), LID (3L), AID (3L), NIL (3L), SIN (3L)
+  Score = 3 * 5 = 15 points
 ```
-Each valid subword proportionally increases the value of every existing word found in that session.
+Each valid subword contributes points equal to its letter count. Longer words yield proportionally higher individual scores.
 
 ---
 

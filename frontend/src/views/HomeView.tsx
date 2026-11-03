@@ -122,10 +122,10 @@ export const HomeView: React.FC<HomeViewProps> = ({ onStart }) => {
           <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/80">
             <div className="text-emerald-400 mb-2 font-game font-bold text-lg flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-400" />
-              <span>Multiplier Scoring</span>
+              <span>Word-Length Scoring</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Total score compounds by multiplying total word lengths by word count.
+              Each word earns points equal to its length (1 point per letter). Long words yield big points!
             </p>
           </div>
 

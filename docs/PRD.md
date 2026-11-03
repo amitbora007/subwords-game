@@ -93,13 +93,16 @@ $$\forall c \in \Sigma, \quad \text{Count}_{\text{subword}}(c) \le \text{Count}_
 - Attempting to submit a competitor's word displays: `"Word already claimed by competitor!"`.
 - Locked words appear in a dedicated "Claimed by Competitor" review ledger.
 
-#### Rule 4: Compounding Multiplier Scoring Engine
-- The score is calculated as:
-  $$\text{Score} = \left( \sum_{i=1}^{N} \text{Length}(W_i) \right) \times N$$
-  - Word 1 (length 4) $\to$ Base: 4, Count: 1 $\to$ Score = $4 \times 1 = 4$
-  - Word 2 (length 3) $\to$ Base: 7, Count: 2 $\to$ Score = $7 \times 2 = 14$
-  - Word 3 (length 5) $\to$ Base: 12, Count: 3 $\to$ Score = $12 \times 3 = 36$
-  - Word 4 (length 4) $\to$ Base: 16, Count: 4 $\to$ Score = $16 \times 4 = 64$
+#### Rule 4: Word-Length Scoring Engine
+- Each valid subword earns points equal to its character length (1 point per letter):
+  $$\text{Points}(W_i) = \text{Length}(W_i)$$
+  $$\text{Total Score} = \sum_{i=1}^{N} \text{Length}(W_i)$$
+- Example:
+  - Word 1: `ISLAND` (length 6) $\to 6 \times 1 = 6$ pts
+  - Word 2: `LAND` (length 4) $\to 4 \times 1 = 4$ pts
+  - Word 3: `AND` (length 3) $\to 3 \times 1 = 3$ pts
+  - Total Player Score = $6 + 4 + 3 = 13$ points.
+  - If a player finds five 3-letter words: Total Score = $3 \times 5 = 15$ points.
 
 ---
 

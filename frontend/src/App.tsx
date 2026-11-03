@@ -24,16 +24,16 @@ const getInitialState = (): { view: ViewState; game: GameState | null; mode: Gam
         status: 'active',
         player1_name: 'Player 1',
         player2_name: 'Computer (AI)',
-        player1_score: 36,
-        player2_score: 16,
+        player1_score: 14,
+        player2_score: 9,
         player1_words: [
-          { word: 'planes', valid: true, length: 6, points: 18 },
-          { word: 'plant', valid: true, length: 5, points: 15 },
+          { word: 'planes', valid: true, length: 6, points: 6 },
+          { word: 'plant', valid: true, length: 5, points: 5 },
           { word: 'net', valid: true, length: 3, points: 3 },
         ],
         player2_words: [
-          { word: 'plate', valid: true, length: 5, points: 10 },
-          { word: 'lane', valid: true, length: 4, points: 6 },
+          { word: 'plate', valid: true, length: 5, points: 5 },
+          { word: 'lane', valid: true, length: 4, points: 4 },
         ],
         difficulty: 'medium',
         created_at: new Date().toISOString()

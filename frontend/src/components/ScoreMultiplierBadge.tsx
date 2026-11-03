@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { WordEntry } from '../types/game';
 
 interface ScoreMultiplierBadgeProps {
@@ -28,27 +28,25 @@ export const ScoreMultiplierBadge: React.FC<ScoreMultiplierBadgeProps> = ({ word
         </div>
       </div>
 
-      {/* Multiplier Formula Breakdown */}
-      <div className="flex items-center gap-2 text-xs font-mono bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-800 self-start sm:self-auto">
+      {/* Score Formula Breakdown */}
+      <div className="flex items-center gap-3 text-xs font-mono bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-800 self-start sm:self-auto">
         <div className="text-center">
-          <div className="text-slate-400 text-[10px]">SUM LENGTHS</div>
-          <div className="text-base font-bold text-slate-100">{basePoints}</div>
-        </div>
-
-        <span className="text-emerald-400 text-lg font-bold">×</span>
-
-        <div className="text-center">
-          <div className="text-slate-400 text-[10px]">TOTAL WORDS</div>
+          <div className="text-slate-400 text-[10px]">VALID WORDS</div>
           <div className="text-base font-bold text-amber-400">{wordCount}</div>
         </div>
 
-        <span className="text-slate-500 text-lg font-bold">=</span>
+        <div className="h-6 w-px bg-slate-800" />
 
-        <div className="text-center pl-1">
-          <div className="text-emerald-400 text-[10px] flex items-center gap-1 justify-center">
-            <Sparkles className="w-3 h-3" /> MULTIPLIED
-          </div>
-          <div className="text-base font-bold text-emerald-300 font-game">{score}</div>
+        <div className="text-center">
+          <div className="text-slate-400 text-[10px]">SCORING RATE</div>
+          <div className="text-xs font-bold text-emerald-300 font-game mt-0.5">1 PT / LETTER</div>
+        </div>
+
+        <div className="h-6 w-px bg-slate-800" />
+
+        <div className="text-center">
+          <div className="text-slate-400 text-[10px]">LETTERS SUM</div>
+          <div className="text-base font-bold text-emerald-400 font-game">{basePoints} pts</div>
         </div>
       </div>
     </div>

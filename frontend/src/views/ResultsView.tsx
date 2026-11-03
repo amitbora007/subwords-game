@@ -90,10 +90,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
-              <span>BASE LENGTH SUM</span>
-              <span className="text-white font-bold">
-                {p1ValidWords.reduce((acc, w) => acc + (w.length || w.word.length), 0)}
-              </span>
+              <span>SCORING RATE</span>
+              <span className="text-emerald-400 font-bold">1 pt / letter</span>
             </div>
           </div>
         </div>
@@ -132,10 +130,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
-              <span>BASE LENGTH SUM</span>
-              <span className="text-white font-bold">
-                {p2ValidWords.reduce((acc, w) => acc + (w.length || w.word.length), 0)}
-              </span>
+              <span>SCORING RATE</span>
+              <span className="text-emerald-400 font-bold">1 pt / letter</span>
             </div>
           </div>
         </div>

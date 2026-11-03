@@ -133,12 +133,10 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
           await new Promise((r) => setTimeout(r, 280));
           if (skipAiRef.current) break;
 
-          // Play chime and update compounding score live
+          // Play chime and update score live
           soundEffects.playValidWord();
           runningRevealed = [...runningRevealed, wordObj];
-          const wordCount = runningRevealed.length;
-          const baseSum = runningRevealed.reduce((acc, w) => acc + w.length, 0);
-          const liveScore = baseSum * wordCount;
+          const liveScore = runningRevealed.reduce((acc, w) => acc + w.length, 0);
 
           setAiLiveScore(liveScore);
           setAiRevealedWords(runningRevealed);
