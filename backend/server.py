@@ -11,31 +11,47 @@ import uuid
 from datetime import datetime
 import random
 import httpx
+from collections import Counter
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+db_name = os.environ.get('DB_NAME', 'subwords_db')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[db_name]
 
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(title="Word Builder API", version="2.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Word list for random generation (min 5 letters)
+# Curated base word list: 6 or more characters with rich subword anagram potential
 WORD_LIST = [
-    "apple", "bread", "create", "dragon", "elephant", "flower", "garden",
-    "hearts", "island", "jungle", "kitchen", "lemon", "master", "nature",
-    "orange", "planet", "question", "random", "stream", "trainer",
-    "umbrella", "village", "window", "crystal", "abstract", "blanket",
-    "cartoon", "desktop", "electric", "fantasy", "graphic", "harvest",
-    "internet", "keyboard", "language", "monster", "network", "organic",
-    "picture", "quality", "rainbow", "sunlight", "triangle", "universal",
-    "volcano", "weather", "problem", "student", "teacher", "friends"
+    # 6 letter words
+    "castle", "planet", "stream", "master", "wonder", "forest", "garden", "island",
+    "silver", "nature", "spring", "travel", "winter", "bridge", "flower", "orange",
+    "golden", "friend", "doctor", "person", "school", "father", "mother", "yellow",
+    "window", "animal", "bottle", "pencil", "market", "church", "sister", "summer",
+    "farmer", "guitar", "rocket", "pocket", "candle", "secret", "energy", "monkey",
+    "turtle", "wizard", "dragon", "knight", "pirate", "circus", "violin", "falcon",
+    "palace", "hunter", "prince", "shadow", "banner", "danger", "temple", "anchor",
+    "fabric", "jungle", "meteor", "canyon", "desert", "oxygen", "copper", "velvet",
+    "timber", "harbor", "legend", "puddle", "magnet", "powder", "shield", "statue",
+    "vector", "blanket", "organic",
+    # 7 letter words
+    "sunlight", "rainbow", "volcano", "weather", "problem", "student", "teacher",
+    "crystal", "cartoon", "fantasy", "graphic", "harvest", "monster", "network",
+    "balance", "captain", "journey", "whisper", "diamond", "feather", "kitchen",
+    "lantern", "morning", "mystery", "package", "quarter", "station", "thunder",
+    "village", "painter", "blanket", "freedom", "pyramid",
+    # 8+ letter words
+    "universal", "elephant", "abstract", "electric", "internet", "keyboard",
+    "language", "triangle", "question", "umbrella", "champion", "creature",
+    "treasure", "mountain", "calendar", "hospital", "dinosaur", "painting",
+    "building", "daughter", "sunshine", "midnight", "firework", "starlight"
 ]
 
 # Define Models
@@ -45,21 +61,23 @@ class Game(BaseModel):
     player1_name: str
     player2_name: str
     current_player: int = 1  # 1 or 2
-    player1_words: List[dict] = []  # {word, valid, points}
+    player1_words: List[dict] = []  # {word, valid, length, points}
     player2_words: List[dict] = []
     player1_score: int = 0
     player2_score: int = 0
+    time_limit: int = 120  # Configurable time limit in seconds
     status: str = "active"  # active, finished
     round: int = 1
     mode: str = "pvp"  # pvp or pvc (player vs computer)
-    difficulty: Optional[str] = None  # easy, medium, hard (for pvc mode)
+    difficulty: Optional[str] = "medium"  # easy, medium, hard (for pvc mode)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class GameCreate(BaseModel):
     player1_name: str
     player2_name: str
     mode: str = "pvp"
-    difficulty: Optional[str] = None
+    difficulty: Optional[str] = "medium"
+    time_limit: Optional[int] = 120
 
 class WordSubmit(BaseModel):
     game_id: str
@@ -77,119 +95,163 @@ class ComputerTurn(BaseModel):
     game_id: str
     difficulty: str
 
-# Helper function to validate if word can be formed from main word
+# Helper function to validate if subword can be formed from letters in main_word
 def can_form_word(main_word: str, sub_word: str) -> bool:
-    """Check if sub_word can be formed from letters in main_word"""
-    main_letters = list(main_word.lower())
-    for letter in sub_word.lower():
-        if letter in main_letters:
-            main_letters.remove(letter)
-        else:
+    """Check if sub_word can be formed from letters in main_word using multiset frequency check"""
+    main_counts = Counter(main_word.lower().strip())
+    sub_counts = Counter(sub_word.lower().strip())
+    for char, count in sub_counts.items():
+        if main_counts[char] < count:
             return False
     return True
 
-# Helper function to check dictionary API
+# Helper function to check dictionary with local cache first, then API fallback
 async def check_dictionary(word: str) -> bool:
-    """Check if word exists in dictionary using free API"""
+    """Check if word exists in local dictionary or external dictionary API"""
+    w = word.lower().strip()
+    # Tier 1: In-memory hash set lookup (O(1))
+    if w in VALID_WORDS:
+        return True
+    
+    # Tier 2: Query free external dictionary API with 3.0s timeout
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}",
-                timeout=5.0
+                f"https://api.dictionaryapi.dev/api/v2/entries/en/{w}",
+                timeout=3.0
             )
-            return response.status_code == 200
-    except:
-        return False
+            if response.status_code == 200:
+                VALID_WORDS.add(w)  # Dynamically cache verified word
+                return True
+    except Exception:
+        pass
+    return False
 
 @api_router.get("/")
 async def root():
-    return {"message": "Word Game API"}
+    return {
+        "message": "Word Builder API v2.0",
+        "status": "online",
+        "features": ["configurable_timer", "competitor_lockout", "multiplier_scoring"]
+    }
 
 @api_router.post("/game/create")
 async def create_game(input: GameCreate):
-    """Create a new game with random word"""
-    # Generate random word (min 5 letters)
+    """Create a new game with random 6+ letter word and configurable timer"""
     main_word = random.choice(WORD_LIST)
+    time_limit = input.time_limit if input.time_limit and input.time_limit > 0 else 120
     
     game_dict = {
         "id": str(uuid.uuid4()),
         "main_word": main_word,
-        "player1_name": input.player1_name,
-        "player2_name": input.player2_name,
+        "player1_name": input.player1_name.strip() or "Player 1",
+        "player2_name": input.player2_name.strip() or ("Computer" if input.mode == "pvc" else "Player 2"),
         "current_player": 1,
         "player1_words": [],
         "player2_words": [],
         "player1_score": 0,
         "player2_score": 0,
+        "time_limit": time_limit,
         "status": "active",
         "round": 1,
         "mode": input.mode,
-        "difficulty": input.difficulty,
+        "difficulty": input.difficulty or "medium",
         "created_at": datetime.utcnow()
     }
     
     await db.games.insert_one(game_dict)
-    game_dict.pop('_id', None)  # Remove MongoDB ObjectId before returning
+    game_dict.pop('_id', None)
     return game_dict
 
 @api_router.get("/game/{game_id}")
 async def get_game(game_id: str):
-    """Get game state"""
+    """Get complete game state"""
     game = await db.games.find_one({"id": game_id})
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
-    game.pop('_id', None)  # Remove MongoDB ObjectId before returning
+    game.pop('_id', None)
     return game
 
 @api_router.post("/game/submit-word")
 async def submit_word(input: WordSubmit):
-    """Submit a word for validation"""
+    """Submit a word for validation with competitor lockout and multiplier scoring"""
     game = await db.games.find_one({"id": input.game_id})
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
+    if game.get("status") != "active":
+        return {"valid": False, "reason": "Game is already finished", "points": 0}
+    
+    if input.player != game.get("current_player"):
+        return {"valid": False, "reason": f"It is Player {game.get('current_player')}'s turn!", "points": 0}
+    
     word = input.word.lower().strip()
     main_word = game["main_word"].lower()
     
-    # Validation checks
+    # 1. Length constraint: min 3 letters
     if len(word) < 3:
         return {"valid": False, "reason": "Word must be at least 3 letters", "points": 0}
     
-    # Check if word can be formed from main word
+    # 2. Multiset character constraint
     if not can_form_word(main_word, word):
         return {"valid": False, "reason": "Word cannot be formed from main word", "points": 0}
     
-    # Check if word already submitted by this player
-    player_words = game[f"player{input.player}_words"]
-    if any(w["word"] == word for w in player_words):
-        return {"valid": False, "reason": "Word already submitted", "points": 0}
+    # 3. Duplicate check for current player
+    current_player_words = game.get(f"player{input.player}_words", [])
+    if any(w["word"] == word for w in current_player_words):
+        return {"valid": False, "reason": "Word already submitted by you", "points": 0}
     
-    # Check dictionary
+    # 4. Competitor lockout check: subwords claimed by competitor cannot be reused!
+    competitor_num = 2 if input.player == 1 else 1
+    competitor_words = game.get(f"player{competitor_num}_words", [])
+    if any(w["word"] == word and w.get("valid", False) for w in competitor_words):
+        return {"valid": False, "reason": "Word already claimed by competitor!", "points": 0}
+    
+    # 5. Dual-tier dictionary verification
     is_valid = await check_dictionary(word)
-    points = len(word) if is_valid else 0
+    if not is_valid:
+        return {"valid": False, "reason": "Word not found in dictionary", "points": 0}
     
-    # Add word to player's list
-    word_entry = {"word": word, "valid": is_valid, "points": points}
-    player_words.append(word_entry)
+    # 6. Compounding Multiplier Scoring:
+    # Score = (Sum of lengths of all valid words) * (Total valid words count)
+    word_len = len(word)
+    new_word_entry = {"word": word, "valid": True, "length": word_len, "points": word_len}
+    updated_words = list(current_player_words)
+    updated_words.append(new_word_entry)
     
-    # Update score
-    new_score = game[f"player{input.player}_score"] + points
+    valid_words = [w for w in updated_words if w.get("valid", False)]
+    word_count = len(valid_words)
+    base_points = sum(w.get("length", len(w["word"])) for w in valid_words)
+    total_score = base_points * word_count
+    
+    # Update all words with current multiplier points
+    for w in updated_words:
+        if w.get("valid"):
+            w["points"] = w.get("length", len(w["word"])) * word_count
     
     await db.games.update_one(
         {"id": input.game_id},
         {
             "$set": {
-                f"player{input.player}_words": player_words,
-                f"player{input.player}_score": new_score
+                f"player{input.player}_words": updated_words,
+                f"player{input.player}_score": total_score
             }
         }
     )
     
-    return {"valid": is_valid, "reason": "Valid word!" if is_valid else "Word not found in dictionary", "points": points}
+    return {
+        "valid": True,
+        "reason": "Valid word!",
+        "word": word,
+        "length": word_len,
+        "word_count": word_count,
+        "base_points": base_points,
+        "total_score": total_score
+    }
 
 @api_router.post("/game/switch-turn")
 async def switch_turn(input: SwitchTurn):
-    """Switch to next player"""
+    """Switch to next player or end game after both have played"""
     game = await db.games.find_one({"id": input.game_id})
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -197,8 +259,6 @@ async def switch_turn(input: SwitchTurn):
     current = game["current_player"]
     next_player = 2 if current == 1 else 1
     new_round = game["round"] + 1
-    
-    # If both players have played, game is finished
     status = "finished" if new_round > 2 else "active"
     
     await db.games.update_one(
@@ -212,21 +272,149 @@ async def switch_turn(input: SwitchTurn):
         }
     )
     
-    return {"success": True, "next_player": next_player, "status": status}
+    return {"success": True, "next_player": next_player, "round": new_round, "status": status}
 
 @api_router.post("/validate-word")
 async def validate_word(input: WordValidation):
-    """Validate a single word"""
+    """Validate a single word standalone"""
     word = input.word.lower().strip()
-    main_word = input.main_word.lower()
+    main_word = input.main_word.lower().strip()
+    
+    if len(word) < 3:
+        return {"valid": False, "reason": "Word must be at least 3 letters"}
     
     if not can_form_word(main_word, word):
         return {"valid": False, "reason": "Cannot be formed from main word"}
     
     is_valid = await check_dictionary(word)
-    return {"valid": is_valid, "reason": "Valid!" if is_valid else "Not in dictionary"}
+    return {"valid": is_valid, "reason": "Valid word!" if is_valid else "Not in dictionary"}
 
-# Common valid English words (expanded dictionary)
+# Helper function to generate all possible subwords
+def generate_subwords(main_word: str, min_length: int = 3) -> List[str]:
+    """Generate valid subwords from main_word using local dictionary"""
+    main_word = main_word.lower()
+    subwords = []
+    
+    for word in VALID_WORDS:
+        if min_length <= len(word) <= len(main_word):
+            if can_form_word(main_word, word):
+                subwords.append(word)
+    
+    return subwords
+
+@api_router.post("/game/computer-turn")
+async def computer_turn(input: ComputerTurn):
+    """Generate computer's words based on difficulty, respecting competitor word lockout"""
+    game = await db.games.find_one({"id": input.game_id})
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    main_word = game["main_word"]
+    difficulty = input.difficulty.lower()
+    
+    # Get all words already claimed by Player 1
+    p1_claimed_words = set(w["word"].lower() for w in game.get("player1_words", []) if w.get("valid"))
+    
+    # Generate all valid subwords
+    all_subwords = generate_subwords(main_word, min_length=3)
+    
+    # Filter out subwords claimed by Player 1 (competitor lockout rule)
+    available_words = [w for w in all_subwords if w not in p1_claimed_words]
+    available_words.sort(key=lambda x: len(x))
+    
+    short_words = [w for w in available_words if len(w) <= 4]
+    long_words = [w for w in available_words if len(w) >= 5]
+    
+    selected_words = []
+    if difficulty == "easy":
+        target_count = min(5, max(3, len(short_words)))
+        selected_words = short_words[:target_count]
+    elif difficulty == "medium":
+        target_count = min(8, max(5, len(available_words)))
+        short_target = min(len(short_words), int(target_count * 0.6))
+        long_target = min(len(long_words), target_count - short_target)
+        selected_words = short_words[:short_target] + long_words[:long_target]
+        if len(selected_words) < target_count:
+            remaining = [w for w in available_words if w not in selected_words]
+            selected_words.extend(remaining[:target_count - len(selected_words)])
+    else:  # hard
+        target_count = min(12, max(8, len(available_words)))
+        long_target = min(len(long_words), max(int(target_count * 0.8), min(8, len(long_words))))
+        short_target = min(len(short_words), target_count - long_target)
+        selected_words = long_words[:long_target] + short_words[:short_target]
+        if len(selected_words) < target_count:
+            remaining = [w for w in available_words if w not in selected_words]
+            selected_words.extend(remaining[:target_count - len(selected_words)])
+        if len(selected_words) < 8 and len(available_words) > 0:
+            selected_words = available_words[:min(12, len(available_words))]
+    
+    # Calculate score using the same compounding multiplier formula
+    word_count = len(selected_words)
+    base_points = sum(len(w) for w in selected_words)
+    total_score = base_points * word_count
+    
+    computer_words = []
+    for word in selected_words:
+        computer_words.append({
+            "word": word,
+            "valid": True,
+            "length": len(word),
+            "points": len(word) * word_count
+        })
+    
+    # Atomically persist computer turn to MongoDB and mark game finished
+    await db.games.update_one(
+        {"id": input.game_id},
+        {
+            "$set": {
+                "player2_words": computer_words,
+                "player2_score": total_score,
+                "round": 3,
+                "status": "finished"
+            }
+        }
+    )
+    
+    return {
+        "words": computer_words,
+        "word_count": word_count,
+        "base_points": base_points,
+        "total_score": total_score
+    }
+
+# Include the router in the main app
+app.include_router(api_router)
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+@app.on_event("startup")
+async def startup_db_indexes():
+    """Ensure indexes on startup for concurrency and quick lookups"""
+    try:
+        await db.games.create_index("id", unique=True)
+        logger.info("MongoDB index on games.id ensured.")
+    except Exception as e:
+        logger.warning(f"Could not create MongoDB index: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    client.close()
+
+# Embedded in-memory dictionary for subword validation
 VALID_WORDS = {
     # 3 letter words
     "ace", "act", "add", "age", "ago", "aid", "aim", "air", "all", "and", "ant", "any", "ape", "arc", "are", "ark", "arm", "art", "ash", "ask", "ate", "awe", "axe",
@@ -278,7 +466,7 @@ VALID_WORDS = {
     "vain", "vale", "vamp", "vane", "vans", "vary", "vase", "vast", "vats", "veal", "veep", "veer", "veil", "vein", "vend", "vent", "verb", "vers", "very", "vest", "veto", "vets", "vial", "vibe", "vice", "vied", "vies", "view", "vile", "vine", "vino", "vins", "viol", "visa", "vise", "void", "vole", "volt", "vote", "vows", "vying",
     "wade", "wads", "waft", "wage", "wail", "wait", "wake", "walk", "wall", "wand", "wane", "want", "ward", "ware", "warm", "warn", "warp", "wars", "wart", "wary", "wash", "wasp", "watt", "wave", "wavy", "waxy", "ways", "weak", "weal", "wean", "wear", "webs", "weds", "weed", "week", "weep", "weft", "weir", "well", "welt", "went", "wept", "were", "west", "wets", "wham", "what", "when", "whet", "whey", "whim", "whip", "whir", "whit", "whiz", "whoa", "whom", "wick", "wide", "wife", "wigs", "wild", "wile", "will", "wilt", "wily", "wimp", "wind", "wine", "wing", "wink", "wins", "winy", "wipe", "wire", "wiry", "wise", "wish", "wisp", "with", "wits", "woes", "woke", "woks", "wolf", "womb", "wont", "wood", "woof", "wool", "woos", "word", "wore", "work", "worm", "worn", "wort", "wove", "wows", "wrap", "wren", "writ",
     "yaks", "yams", "yang", "yank", "yaps", "yard", "yarn", "yawl", "yawn", "yaws", "yeah", "year", "yeas", "yell", "yelp", "yens", "yeps", "yews", "yids", "yins", "yips", "yoke", "yolk", "yond", "yore", "york", "your", "yowl", "yows", "yuan", "yuck", "yule", "yups", "yurt",
-    "zany", "zaps", "zeal", "zebu", "zeds", "zees", "zens", "zero", "zest", "zeta", "zinc", "zing", "zion", "zips", "zits", "zone", "zonk", "zoom", "zoos", "zulu", "zulu",
+    "zany", "zaps", "zeal", "zebu", "zeds", "zees", "zens", "zero", "zest", "zeta", "zinc", "zing", "zion", "zips", "zits", "zone", "zonk", "zoom", "zoos", "zulu",
     # 5 letter words
     "about", "above", "abuse", "actor", "acute", "admit", "adopt", "adult", "after", "again", "agent", "agree", "ahead", "alarm", "album", "alert", "alien", "align", "alike", "alive", "allow", "alone", "along", "alter", "angel", "anger", "angle", "angry", "apart", "apple", "apply", "arena", "argue", "arise", "array", "arrow", "aside", "asset", "audio", "avoid", "awake", "award", "aware", "badly",
     "baker", "bases", "basic", "basin", "basis", "beach", "began", "begin", "being", "below", "bench", "billy", "birth", "black", "blade", "blame", "blank", "blind", "block", "blood", "blown", "board", "boost", "booth", "bound", "brain", "brand", "brave", "bread", "break", "breed", "brief", "bring", "broad", "broke", "brown", "build", "built", "buyer",
@@ -299,109 +487,23 @@ VALID_WORDS = {
     "radio", "raise", "range", "rapid", "ratio", "reach", "ready", "refer", "relax", "reply", "right", "rival", "river", "robin", "roger", "roman", "rough", "round", "route", "royal", "rural",
     "scale", "scene", "scope", "score", "sense", "serve", "seven", "shall", "shape", "share", "sharp", "sheet", "shelf", "shell", "shift", "shine", "shirt", "shock", "shoot", "shore", "short", "shown", "sight", "silly", "since", "sixth", "sixty", "sized", "skill", "sleep", "slide", "small", "smart", "smile", "smith", "smoke", "solid", "solve", "sorry", "sound", "south", "space", "spare", "speak", "speed", "spend", "spent", "split", "spoke", "sport", "staff", "stage", "stake", "stand", "start", "state", "steam", "steel", "steep", "stick", "still", "stock", "stone", "stood", "store", "storm", "story", "strip", "stuck", "study", "stuff", "style", "sugar", "suite", "sunny", "super", "sweet", "sword",
     "table", "taken", "taste", "taxes", "teach", "texas", "thank", "theft", "their", "theme", "there", "these", "thick", "thing", "think", "third", "thirty", "those", "three", "threw", "throw", "tight", "times", "title", "today", "topic", "total", "touch", "tough", "tower", "track", "trade", "train", "trait", "trash", "treat", "trend", "trial", "tribe", "trick", "tried", "tries", "troop", "truck", "truly", "trump", "trust", "truth", "twice", "uncle", "under", "undue", "union", "unity", "until", "upper", "upset", "urban", "usage", "usual", "valid", "value", "video", "virus", "visit", "vital", "vocal", "voice", "waste", "watch", "water", "wheel", "where", "which", "while", "white", "whole", "whose", "woman", "women", "world", "worry", "worse", "worst", "worth", "would", "wound", "write", "wrong", "wrote", "yield", "young", "yours", "youth",
+    # 6+ letter common words for subword validation
+    "castle", "planet", "stream", "master", "wonder", "forest", "garden", "island",
+    "silver", "nature", "spring", "travel", "winter", "bridge", "flower", "orange",
+    "golden", "friend", "doctor", "person", "school", "father", "mother", "yellow",
+    "window", "animal", "bottle", "pencil", "market", "church", "sister", "summer",
+    "farmer", "guitar", "rocket", "pocket", "candle", "secret", "energy", "monkey",
+    "turtle", "wizard", "dragon", "knight", "pirate", "circus", "violin", "falcon",
+    "palace", "hunter", "prince", "shadow", "banner", "danger", "temple", "anchor",
+    "fabric", "jungle", "meteor", "canyon", "desert", "oxygen", "copper", "velvet",
+    "timber", "harbor", "legend", "puddle", "magnet", "powder", "shield", "statue",
+    "vector", "blanket", "organic", "sunlight", "rainbow", "volcano", "weather",
+    "problem", "student", "teacher", "crystal", "cartoon", "fantasy", "graphic",
+    "harvest", "monster", "network", "balance", "captain", "journey", "whisper",
+    "diamond", "feather", "kitchen", "lantern", "morning", "mystery", "package",
+    "quarter", "station", "thunder", "village", "painter", "freedom", "pyramid",
+    "universal", "elephant", "abstract", "electric", "internet", "keyboard",
+    "language", "triangle", "question", "umbrella", "champion", "creature",
+    "treasure", "mountain", "calendar", "hospital", "dinosaur", "painting",
+    "building", "daughter", "sunshine", "midnight", "firework", "starlight"
 }
-
-# Helper function to generate all possible subwords
-def generate_subwords(main_word: str, min_length: int = 3) -> List[str]:
-    """Generate valid subwords from main_word using local dictionary - optimized approach"""
-    main_word = main_word.lower()
-    main_letters = list(main_word)
-    subwords = []
-    
-    # Check all words in our dictionary to see if they can be formed from main_word
-    for word in VALID_WORDS:
-        if len(word) >= min_length and len(word) <= len(main_word):
-            # Check if this word can be formed from main_word letters
-            if can_form_word(main_word, word):
-                subwords.append(word)
-    
-    return subwords
-
-@api_router.post("/game/computer-turn")
-async def computer_turn(input: ComputerTurn):
-    """Generate computer's words based on difficulty"""
-    game = await db.games.find_one({"id": input.game_id})
-    if not game:
-        raise HTTPException(status_code=404, detail="Game not found")
-    
-    main_word = game["main_word"]
-    difficulty = input.difficulty.lower()
-    
-    # Generate all valid subwords using local dictionary
-    valid_words = generate_subwords(main_word, min_length=3)
-    
-    # Sort by length for difficulty filtering
-    valid_words.sort(key=lambda x: len(x))
-    
-    # Separate words by length for better filtering
-    short_words = [w for w in valid_words if len(w) <= 4]  # 3-4 letters
-    long_words = [w for w in valid_words if len(w) >= 5]   # 5+ letters
-    
-    # Filter based on difficulty
-    selected_words = []
-    if difficulty == "easy":
-        # Easy: 3-5 short words (3-4 letters only)
-        target_count = min(5, max(3, len(short_words)))
-        selected_words = short_words[:target_count]
-    elif difficulty == "medium":
-        # Medium: 5-8 words, mix of lengths (prefer some long words)
-        target_count = min(8, max(5, len(valid_words)))
-        # Try to get 60% short, 40% long for variety
-        short_target = min(len(short_words), int(target_count * 0.6))
-        long_target = min(len(long_words), target_count - short_target)
-        selected_words = short_words[:short_target] + long_words[:long_target]
-        # If we don't have enough, fill with remaining words
-        if len(selected_words) < target_count:
-            remaining = [w for w in valid_words if w not in selected_words]
-            selected_words.extend(remaining[:target_count - len(selected_words)])
-    else:  # hard
-        # Hard: 8-12 words, prefer longer words
-        target_count = min(12, max(8, len(valid_words)))
-        # Prioritize long words even more (try for 80% long if available)
-        long_target = min(len(long_words), max(int(target_count * 0.8), min(8, len(long_words))))
-        short_target = min(len(short_words), target_count - long_target)
-        selected_words = long_words[:long_target] + short_words[:short_target]
-        # If we don't have enough, fill with any remaining words
-        if len(selected_words) < target_count:
-            remaining = [w for w in valid_words if w not in selected_words]
-            selected_words.extend(remaining[:target_count - len(selected_words)])
-        # Ensure minimum count of 8
-        if len(selected_words) < 8:
-            # If we can't meet minimum, take all available words
-            selected_words = valid_words[:min(12, len(valid_words))]
-    
-    # Prepare word entries
-    computer_words = []
-    total_score = 0
-    for word in selected_words:
-        word_entry = {"word": word, "valid": True, "points": len(word)}
-        computer_words.append(word_entry)
-        total_score += len(word)
-    
-    return {
-        "words": computer_words,
-        "total_score": total_score,
-        "count": len(computer_words)
-    }
-
-# Include the router in the main app
-app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()

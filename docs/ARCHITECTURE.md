@@ -1,58 +1,62 @@
 # System Architecture Document
-## Word Builder Game (Subwords)
+## Word Builder Web Arena (Subwords)
 
 | Document Control | Details |
 | :--- | :--- |
-| **System** | Word Builder (Subwords) System Architecture |
-| **Architecture Version** | 1.0.0 |
-| **Architecture Pattern** | Decoupled Client-Server (Mobile SPA + Asynchronous REST API) |
-| **Document Status** | Approved / Living Document |
+| **System** | Subwords Web Arena System Architecture |
+| **Architecture Version** | 2.0.0 (Web Revamp) |
+| **Architecture Pattern** | Decoupled Client-Server (SPA Web App + Asynchronous REST API) |
+| **Status** | Active / Baseline |
 | **Last Updated** | November 2026 |
 
 ---
 
-## 1. Architectural Overview & Context
+## 1. High-Level Architecture Overview
 
-Word Builder follows a modern decoupled client-server architecture. The presentation layer is an Expo-powered React Native mobile application, communicating over an asynchronous JSON REST API with a FastAPI (Python) backend service. Persistent game state is stored in MongoDB via Motor (asynchronous driver), with dual-tier lexical validation utilizing both an in-memory dictionary and the Free Dictionary API.
+Word Builder Web Arena is architected as an asynchronous, decoupled web application. The frontend is a modern single-page web app built on **Vite + React 18/19 + Tailwind CSS**, communicating over HTTP/JSON with a high-performance **FastAPI** backend service. Persistent state is maintained in **MongoDB** via Motor async driver, with an in-memory lexical cache backed by an external Dictionary API fallback.
 
 ```mermaid
 graph TB
-    subgraph "Client Layer (Mobile / Web)"
-        UI[React Native Expo App]
-        ER[Expo Router Stack]
-        Axios[Axios HTTP Client]
-        UI --> ER
-        UI --> Axios
+    subgraph "Client Layer (Web Application)"
+        Browser[Modern Web Browser Desktop / Mobile]
+        ReactApp[React 18/19 Single Page App]
+        ViteDev[Vite Bundler & Dev Proxy]
+        AxiosClient[Axios HTTP REST Client]
+
+        Browser --> ReactApp
+        ReactApp --> AxiosClient
+        AxiosClient --> ViteDev
     end
 
-    subgraph "Network & Gateway Layer"
-        CORS[Starlette CORS Middleware]
-        Router[FastAPI API Router /api]
+    subgraph "API & Gateway Layer"
+        CORS[FastAPI CORS Middleware]
+        APIRouter[FastAPI APIRouter /api]
     end
 
-    subgraph "Application Core (Backend Service)"
-        GameService[Game Management Service]
-        Validator[Lexical & Permutation Engine]
-        AIEngine[AI Move Generator]
-        LocalDict[Local Dictionary Cache: 2000+ Words]
+    subgraph "Application Core (FastAPI Backend)"
+        GameService[Game Session Service]
+        ScoreEngine[Compounding Multiplier Scoring Engine]
+        LockoutValidator[Competitor Lockout & Permutation Validator]
+        AIEngine[AI Opponent Move Generator]
+        LocalDict[In-Memory Lexical Cache 2,000+ Words]
     end
 
-    subgraph "External & Persistence Layer"
-        DictAPI[Free Dictionary API: dictionaryapi.dev]
+    subgraph "Data & External Layer"
         MongoDB[(MongoDB Database: subwords_db)]
+        DictAPI[Free Dictionary API: dictionaryapi.dev]
     end
 
-    Axios -->|HTTP REST / JSON| CORS
-    CORS --> Router
-    Router --> GameService
-    Router --> Validator
-    Router --> AIEngine
+    ViteDev -->|HTTP REST /api| CORS
+    CORS --> APIRouter
+    APIRouter --> GameService
+    APIRouter --> ScoreEngine
+    APIRouter --> LockoutValidator
+    APIRouter --> AIEngine
 
-    Validator --> LocalDict
-    Validator -->|Async HTTPX| DictAPI
+    LockoutValidator --> LocalDict
+    LockoutValidator -.->|Fallback on Cache Miss| DictAPI
 
     AIEngine --> LocalDict
-
     GameService -->|Motor Async Driver| MongoDB
 ```
 
@@ -60,267 +64,64 @@ graph TB
 
 ## 2. Technology Stack Matrix
 
-| Layer | Technology | Version | Rationale & Responsibility |
+| Layer | Component | Version | Role & Description |
 | :--- | :--- | :--- | :--- |
-| **Frontend Framework** | React Native (Expo) | ~52.0.x / React 18.3.1 | Cross-platform mobile support (iOS, Android, Web) with rapid hot reloading and unified UI components. |
-| **Frontend Navigation** | Expo Router | ~4.0.x | File-system-based routing with deep-linking, typed parameters, and native stack navigation. |
-| **Frontend Networking** | Axios | ^1.7.9 | Promise-based HTTP client for asynchronous REST API communication with timeout control. |
-| **Backend Framework** | FastAPI | >=0.100.0 | High-performance Python async web framework with automatic OpenAPI/Swagger docs and Pydantic validation. |
-| **ASGI Server** | Uvicorn | Standard | Lightning-fast ASGI web server implementation for Python. |
-| **Database Driver** | Motor (AsyncIOMotorClient) | Standard | Non-blocking async driver for MongoDB running on asyncio event loop. |
-| **Persistence Store** | MongoDB | >=6.0 (Atlas / Community) | Document database providing dynamic schema flexibility for nested word lists and game session states. |
-| **External HTTP Client** | HTTPX | Standard | Async HTTP client for Python used for concurrent external dictionary API verification. |
-| **Validation & Schema** | Pydantic v2 | Standard | High-speed data modeling, request payload validation, and type safety. |
+| **Frontend Framework** | React + TypeScript | React 18.3.1 / TS 5.7 | Component-driven UI, state management, keyboard listeners. |
+| **Build & Dev Tool** | Vite | 6.1.x | Lightning-fast HMR and optimized production bundling. |
+| **Styling & Design** | Tailwind CSS | 3.4.x | Utility-first styling with custom game tokens and glassmorphism. |
+| **Icons & Visuals** | Lucide React & Canvas Confetti | Latest | Vector iconography and particle celebration fireworks. |
+| **HTTP Client** | Axios | 1.7.9 | Promise-based client with base URL proxying and interceptors. |
+| **Backend Web Framework**| FastAPI | >=0.110.0 | High-performance Python async web framework with automatic OpenAPI. |
+| **ASGI Web Server** | Uvicorn | >=0.25.0 | Lightning-fast ASGI server for asynchronous request handling. |
+| **Database Driver** | Motor (AsyncIOMotorClient) | 3.3.x / 3.7.x | Non-blocking async driver for MongoDB running on asyncio event loop. |
+| **Database Engine** | MongoDB | >=6.0 | Document database for storing game documents, word lists, and scores. |
+| **External HTTP Client** | HTTPX | 0.28.x | Non-blocking async HTTP client for external dictionary lookups. |
 
 ---
 
-## 3. Component Architecture
+## 3. End-to-End Sequence Diagrams
 
-### 3.1 Frontend Components (`frontend/app/`)
-
-```mermaid
-classDiagram
-    class IndexScreen {
-        +render()
-        +navigateToSetup()
-    }
-    class SetupScreen {
-        -mode: "pvp" | "pvc"
-        -difficulty: "easy" | "medium" | "hard"
-        -player1: string
-        -player2: string
-        -loading: boolean
-        +startGame()
-    }
-    class GameScreen {
-        -gameData: GameState
-        -currentWord: string
-        -timeLeft: number
-        -submitting: boolean
-        -computerThinking: boolean
-        +fetchGame()
-        +handleSubmitWord()
-        +handleEndTurn()
-        +handleComputerTurn()
-    }
-    class ResultsScreen {
-        -gameData: GameState
-        +fetchGame()
-        +calculateWinner()
-        +playAgain()
-        +navigateHome()
-    }
-
-    IndexScreen --> SetupScreen : /setup
-    SetupScreen --> GameScreen : /game?gameId=...
-    GameScreen --> ResultsScreen : /results?gameId=...
-    ResultsScreen --> SetupScreen : Play Again
-    ResultsScreen --> IndexScreen : Home
-```
-
-1. **`index.tsx` (Home Screen)**: Entry point displaying title branding, game rules summary, and navigation trigger to setup.
-2. **`setup.tsx` (Configuration Screen)**: Handles user input for match type (PvP vs PvC), AI difficulty tuning, and player naming; dispatches `POST /api/game/create`.
-3. **`game.tsx` (Active Match Screen)**: Manages real-time countdown timer (120s), reactive input forms, word submission dispatch, simulated AI playback loops, and turn state synchronization.
-4. **`results.tsx` (Outcome Screen)**: Reads final match state from backend, computes winner/tie conditions, and renders scoreboards and word review feeds.
-
----
-
-### 3.2 Backend Services (`backend/server.py`)
-
-- **Routing Layer (`api_router`)**:
-  - `GET /api/`: Health check and connectivity probe.
-  - `POST /api/game/create`: Generates new game session with a randomized base word.
-  - `GET /api/game/{game_id}`: Retrieves complete game state.
-  - `POST /api/game/submit-word`: Validates letters, verifies dictionary existence, updates scores and word list.
-  - `POST /api/game/switch-turn`: Advances player turn, increments round counter, marks game as `finished` after round 2.
-  - `POST /api/game/computer-turn`: Generates AI move set filtered by difficulty rules.
-  - `POST /api/validate-word`: Standalone endpoint for validating individual words.
-
----
-
-## 4. End-to-End Sequence Diagrams
-
-### 4.1 Game Initialization Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Player as User (Mobile Client)
-    participant Setup as SetupScreen (Expo)
-    participant API as FastAPI (/api/game/create)
-    participant Mongo as MongoDB (db.games)
-
-    Player->>Setup: Selects Mode (PvP/PvC) & Enters Names
-    Player->>Setup: Taps "Start Game"
-    Setup->>API: POST /api/game/create {player1, player2, mode, difficulty}
-    API->>API: Select random main_word from WORD_LIST
-    API->>API: Instantiate Game document (UUID, round=1, score=0)
-    API->>Mongo: insert_one(game_dict)
-    Mongo-->>API: Acknowledged (ObjectId)
-    API->>API: Remove `_id` from payload
-    API-->>Setup: Return GameState JSON (game_id, main_word, players)
-    Setup->>Player: Transition to GameScreen (/game?gameId=...)
-```
-
----
-
-### 4.2 Word Submission & Dual-Tier Validation Flow
+### 3.1 Word Submission with Competitor Lockout & Multiplier Scoring
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Player as Active Player
-    participant Client as GameScreen
+    participant UI as GameView (React)
     participant API as FastAPI (/api/game/submit-word)
-    participant DictAPI as DictionaryAPI.dev
-    participant Mongo as MongoDB
+    participant Dict as Local In-Memory Dictionary
+    participant Mongo as MongoDB (games collection)
 
-    Player->>Client: Types subword & taps Submit
-    Client->>API: POST /api/game/submit-word {game_id, word, player}
+    Player->>UI: Types word & hits Enter / Submit
+    UI->>API: POST /api/game/submit-word {game_id, word, player}
     API->>Mongo: find_one({id: game_id})
-    Mongo-->>API: Game State
+    Mongo-->>API: Game Document
 
-    Note over API: Step 1: Length Validation (len >= 3)
-    Note over API: Step 2: Letter Multiset Check (can_form_word)
-    Note over API: Step 3: Duplicate Check (player_words)
-    
-    alt Verification Failure in Step 1, 2, or 3
-        API-->>Client: {valid: false, reason: "...", points: 0}
-    else Structural Checks Passed
-        API->>DictAPI: GET /api/v2/entries/en/{word} (5s timeout)
-        alt Dictionary API returns 200 OK
-            Note over API: Word is Valid English
-        else Timeout / 404 / Error
-            Note over API: Word is Invalid
+    Note over API: 1. Validate status == 'active' & player == current_player
+    Note over API: 2. Length >= 3 & can_form_word(main_word, word)
+    Note over API: 3. Verify word not in player_words (No self-duplicate)
+    Note over API: 4. Verify word NOT in competitor_words (Competitor Lockout!)
+
+    alt Word claimed by competitor
+        API-->>UI: {valid: false, reason: "Word already claimed by competitor!"}
+    else Word passes structural & lockout checks
+        API->>Dict: Check word in VALID_WORDS
+        alt Not in local dictionary
+            API->>API: Fallback query to DictionaryAPI.dev (3s timeout)
         end
-        API->>Mongo: update_one({id}, {$set: {player_words, player_score}})
-        API-->>Client: {valid: bool, points: N, reason: "..."}
+        Note over API: 5. Calculate Multiplier Score: Sum(Lengths) * TotalCount
+        API->>Mongo: update_one({id: game_id}, {$set: {player_words, player_score}})
+        API-->>UI: {valid: true, length, word_count, total_score}
     end
-    Client->>Client: Refresh local state & display feedback alert
+    UI->>UI: Update reactive letter bank, score badge, and word ledger
 ```
 
 ---
 
-### 4.3 Computer AI Move Execution Flow (PvC Mode)
+## 4. Concurrency & Scalability Architecture
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Client as GameScreen
-    participant API as FastAPI (/api/game/computer-turn)
-    participant LocalDict as In-Memory Dictionary (VALID_WORDS)
-    participant Mongo as MongoDB
-
-    Note over Client: Detected current_player == 2 & mode == "pvc"
-    Client->>Client: Display "Computer is thinking..." Overlay
-    Client->>Client: Wait 3000ms (Human-like think pause)
-    Client->>API: POST /api/game/computer-turn {game_id, difficulty}
-    
-    API->>Mongo: find_one({id: game_id})
-    Mongo-->>API: Game State (main_word)
-    
-    API->>LocalDict: generate_subwords(main_word, min_len=3)
-    LocalDict-->>API: All valid subwords
-    API->>API: Filter words by difficulty tier (Easy/Medium/Hard)
-    API-->>Client: {words: [...], total_score, count}
-
-    loop For each word in words
-        Client->>Client: Wait 1500ms (Pacing)
-        Client->>API: POST /api/game/submit-word {game_id, word, player: 2}
-        API-->>Client: Submission Acknowledged
-    end
-
-    Client->>Client: Wait 2000ms
-    Client->>API: POST /api/game/switch-turn {game_id}
-    API->>Mongo: Update round=3, status="finished"
-    API-->>Client: {status: "finished"}
-    Client->>Client: Navigate to /results
-```
-
----
-
-## 5. Data Architecture & MongoDB Schema
-
-The system uses a single operational collection named `games` inside the `subwords_db` database.
-
-### 5.1 `games` Document Schema Model
-
-```json
-{
-  "_id": "ObjectId('...')",
-  "id": "e4b2d184-7a32-4e89-9a67-9c98ef820d88",
-  "main_word": "planet",
-  "player1_name": "Alice",
-  "player2_name": "Bob",
-  "current_player": 1,
-  "player1_words": [
-    {
-      "word": "plan",
-      "valid": true,
-      "points": 4
-    },
-    {
-      "word": "lane",
-      "valid": true,
-      "points": 4
-    }
-  ],
-  "player2_words": [
-    {
-      "word": "plant",
-      "valid": true,
-      "points": 5
-    }
-  ],
-  "player1_score": 8,
-  "player2_score": 5,
-  "status": "active",
-  "round": 1,
-  "mode": "pvp",
-  "difficulty": null,
-  "created_at": "2026-11-03T06:00:00.000Z"
-}
-```
-
-### 5.2 Schema Constraints & Indexing Strategy
-- **Unique Primary Index**: `{ "id": 1 }` (UUID string, unique constraint ensures $O(1)$ lookup for all game actions).
-- **TTL Index (Recommended for Production)**: `{ "created_at": 1 }, { expireAfterSeconds: 86400 }` to automatically clean up abandoned games after 24 hours.
-
----
-
-## 6. Networking & Deployment Topology
-
-```mermaid
-graph LR
-    subgraph "Local Development / Testing"
-        Phone[Physical Device / Expo Go]
-        DevPC[Developer Machine]
-        Phone -->|WiFi LAN 192.168.x.x:8001| DevPC
-        DevPC --> FastAPISrv[FastAPI Port 8001]
-        FastAPISrv --> MongoLocal[(MongoDB 27017)]
-    end
-
-    subgraph "Production Topology (Target)"
-        ClientApp[iOS / Android App Bundle]
-        LB[HTTPS Load Balancer / Reverse Proxy]
-        FastAPICluster[FastAPI Container Instances]
-        Atlas[(MongoDB Atlas Cloud M0/M10)]
-
-        ClientApp -->|HTTPS /api| LB
-        LB --> FastAPICluster
-        FastAPICluster --> Atlas
-    end
-```
-
----
-
-## 7. Security & Architecture Quality Attributes
-
-1. **Data Confidentiality & Credentials**:
-   - Environment variables loaded exclusively via `python-dotenv` and Expo environment configurations.
-   - Credentials strictly barred from version control via `.gitignore`.
-2. **CORS Configuration**:
-   - Currently permissive (`*`) for cross-device LAN development; production requires origin whitelisting (`subwords.app`).
-3. **Resilience & Fault Tolerance**:
-   - External Dictionary API call is wrapped in a strict 5.0-second timeout with non-blocking async execution.
-   - Database operations use async non-blocking I/O preventing event loop starvation.
+1. **Stateless Game Routing**: All game state transitions are identified by unique UUIDs (`game_id`). Any backend instance in a cluster can handle any turn request without sticky sessions.
+2. **Database Indexing**:
+   - Primary operational index: `{ "id": 1 }` (unique constraint, $O(1)$ query lookups).
+   - Clean non-blocking async queries using `AsyncIOMotorClient`.
+3. **In-Memory Lexical Cache**: Lookups against `VALID_WORDS` use Python set hashing with $O(1)$ time complexity, ensuring zero event loop blocking during high concurrent traffic.
