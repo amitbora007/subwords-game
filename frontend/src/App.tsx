@@ -6,10 +6,51 @@ import { SetupView } from './views/SetupView';
 import { GameView } from './views/GameView';
 import { ResultsView } from './views/ResultsView';
 
+const getInitialState = (): { view: ViewState; game: GameState | null; mode: GameMode } => {
+  if (typeof window === 'undefined') return { view: 'home', game: null, mode: 'pvc' };
+  const params = new URLSearchParams(window.location.search);
+  const demo = params.get('demo');
+  if (demo === 'game') {
+    return {
+      view: 'game',
+      mode: 'pvc',
+      game: {
+        id: 'demo-match-1',
+        main_word: 'PLANETS',
+        mode: 'pvc',
+        time_limit: 120,
+        current_player: 1,
+        round: 1,
+        status: 'active',
+        player1_name: 'Player 1',
+        player2_name: 'Computer (AI)',
+        player1_score: 36,
+        player2_score: 16,
+        player1_words: [
+          { word: 'planes', valid: true, length: 6, points: 18 },
+          { word: 'plant', valid: true, length: 5, points: 15 },
+          { word: 'net', valid: true, length: 3, points: 3 },
+        ],
+        player2_words: [
+          { word: 'plate', valid: true, length: 5, points: 10 },
+          { word: 'lane', valid: true, length: 4, points: 6 },
+        ],
+        difficulty: 'medium',
+        created_at: new Date().toISOString()
+      }
+    };
+  }
+  if (params.get('view') === 'setup') {
+    return { view: 'setup', game: null, mode: (params.get('mode') as GameMode) || 'pvc' };
+  }
+  return { view: 'home', game: null, mode: 'pvc' };
+};
+
 export function App() {
-  const [view, setView] = useState<ViewState>('home');
-  const [selectedMode, setSelectedMode] = useState<GameMode>('pvc');
-  const [currentGame, setCurrentGame] = useState<GameState | null>(null);
+  const [initial] = useState(getInitialState);
+  const [view, setView] = useState<ViewState>(initial.view);
+  const [selectedMode, setSelectedMode] = useState<GameMode>(initial.mode);
+  const [currentGame, setCurrentGame] = useState<GameState | null>(initial.game);
 
   const handleStartFromHome = (mode: GameMode = 'pvc') => {
     setSelectedMode(mode);

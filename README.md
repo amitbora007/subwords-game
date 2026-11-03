@@ -2,6 +2,18 @@
 
 A fast-paced, competitive word puzzle web application where players create valid English subwords from a randomly generated 6+ character base word within a configurable time limit. Features compounding multiplier scoring, competitor word-stealing lockout, and both Single Player (vs AI) and Two Player (Pass & Play) modes.
 
+![Subwords Game Arena](docs/screenshots/gameplay_arena.png)
+
+## 📸 Screenshots
+
+| Live Gameplay Arena | Match Setup & Configuration |
+| :---: | :---: |
+| ![Live Gameplay Arena](docs/screenshots/gameplay_arena.png) | ![Match Setup](docs/screenshots/setup_view.png) |
+
+| Cyber Arcade Home / Mode Selection |
+| :---: |
+| ![Lobby Home](docs/screenshots/lobby_home.png) |
+
 ## 📚 Project Documentation
 
 A comprehensive documentation suite is maintained in the [`docs/`](docs/) directory:
@@ -37,6 +49,69 @@ A comprehensive documentation suite is maintained in the [`docs/`](docs/) direct
 - **Backend**: FastAPI (Python), Motor (Async MongoDB Driver), Pydantic v2, HTTPX
 - **Database**: MongoDB (Local or Atlas)
 - **Validation**: Hybrid In-Memory Dictionary (2,000+ words) + Free Dictionary API
+
+---
+
+## 🏗️ System Architecture
+
+Subwords Web Arena uses a decoupled modern web architecture featuring a reactive **React 18/19 SPA** frontend and a modular **FastAPI MVC** backend with asynchronous MongoDB persistence:
+
+```mermaid
+graph TB
+    subgraph "Client Layer (React 18 + Vite)"
+        Browser[Modern Web Browser Desktop / Mobile]
+        ReactApp[React SPA with Chakra Petch UI]
+        ViteDev[Vite Bundler & Dev Proxy :5173]
+        AxiosClient[Axios API Client]
+
+        Browser --> ReactApp
+        ReactApp --> AxiosClient
+        AxiosClient --> ViteDev
+    end
+
+    subgraph "Backend MVC Architecture (FastAPI :8000)"
+        Main[app.main:app Entrypoint]
+        CORS[CORS Middleware]
+
+        subgraph "Routes (Presentation Layer)"
+            GameRouter[app.routes.game_router]
+        end
+
+        subgraph "Controllers (Business Orchestration)"
+            GameController[app.controllers.GameController]
+        end
+
+        subgraph "Models (Domain Entities & DTOs)"
+            GameModels[app.models.Game, GameCreate, WordSubmit]
+        end
+
+        subgraph "Services (Core Algorithms)"
+            GameService[app.services.GameService]
+            DictService[app.services.dictionary_service]
+        end
+
+        subgraph "Core (Config & Database)"
+            Config[app.core.config]
+            Database[app.core.database AsyncIOMotorClient]
+        end
+    end
+
+    subgraph "Data & External Layer"
+        MongoDB[(MongoDB Database: subwords_db)]
+        DictAPI[Free Dictionary API: dictionaryapi.dev]
+    end
+
+    ViteDev -->|HTTP REST /api| Main
+    Main --> CORS
+    CORS --> GameRouter
+    GameRouter --> GameController
+    GameController --> GameModels
+    GameController --> GameService
+    GameController --> DictService
+    GameController --> Database
+    Database --> MongoDB
+    DictService -.->|Fallback on Cache Miss| DictAPI
+```
 
 ---
 
@@ -77,7 +152,8 @@ subwords/
 │   ├── ARCHITECTURE.md        # System architecture, sequence diagrams & schema
 │   ├── DESIGN.md              # LLD algorithms & UI/UX design system
 │   ├── BUGS.md                # Defect registry & vulnerability audit
-│   └── USAGE.md               # Setup, operations, API reference & runbook
+│   ├── USAGE.md               # Setup, operations, API reference & runbook
+│   └── screenshots/           # High-resolution application screenshots
 ├── backend/
 │   ├── app/                   # MVC Architecture Package
 │   │   ├── main.py            # FastAPI entrypoint, CORS, router mounting
@@ -85,7 +161,7 @@ subwords/
 │   │   ├── models/            # Pydantic domain models (Game, GameCreate, etc.)
 │   │   ├── services/          # Scoring engine, lockout, dictionary & AI bot algorithms
 │   │   ├── controllers/       # Controller orchestrating DB queries & business logic
-│   │   └── views/             # API presentation router (/api endpoints)
+│   │   └── routes/            # API presentation router (/api endpoints)
 │   ├── server.py              # Backward-compatible proxy to app.main:app
 │   ├── dictionary.py          # Backward-compatible proxy to app.services.dictionary_service
 │   ├── requirements.txt       # Streamlined core Python dependencies (6 packages)

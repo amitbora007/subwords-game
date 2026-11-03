@@ -32,8 +32,8 @@ graph TB
         Main[app.main:app Entrypoint]
         CORS[CORS Middleware]
 
-        subgraph "Views (Presentation Layer)"
-            GameRouter[app.views.game_router]
+        subgraph "Routes (Presentation Layer)"
+            GameRouter[app.routes.game_router]
         end
 
         subgraph "Controllers (Business Orchestration)"

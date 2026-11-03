@@ -81,6 +81,10 @@
 
 ## 3. End-User Gameplay Walkthrough
 
+| Match Setup | Live Arena Gameplay |
+| :---: | :---: |
+| ![Match Setup](screenshots/setup_view.png) | ![Live Arena Gameplay](screenshots/gameplay_arena.png) |
+
 ### 3.1 Single Player vs AI Mode
 1. Open `http://localhost:5173` in your browser $\to$ Click **"Launch Game"**.
 2. Select **"Vs Computer"** mode.
