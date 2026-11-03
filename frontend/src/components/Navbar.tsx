@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Gamepad2, HelpCircle, X, Trophy, Clock, ShieldAlert } from 'lucide-react';
+import { Gamepad2, HelpCircle, X, Trophy, Clock, ShieldAlert, Volume2, VolumeX } from 'lucide-react';
+import { soundEffects } from '../utils/sound';
 
 interface NavbarProps {
   onHomeClick?: () => void;
@@ -7,6 +8,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onHomeClick }) => {
   const [showRules, setShowRules] = useState(false);
+  const [isMuted, setIsMuted] = useState(soundEffects.isMuted());
 
   return (
     <>
@@ -30,7 +32,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onHomeClick }) => {
           </button>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => {
+                const nowMuted = soundEffects.toggleMute();
+                setIsMuted(nowMuted);
+              }}
+              className="p-2 rounded-lg text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"
+              title={isMuted ? "Unmute sound effects" : "Mute sound effects"}
+              aria-label={isMuted ? "Unmute sound effects" : "Mute sound effects"}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4 text-slate-500" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
+            </button>
+
             <button
               onClick={() => setShowRules(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"

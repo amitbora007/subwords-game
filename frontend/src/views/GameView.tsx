@@ -7,6 +7,7 @@ import { ScoreMultiplierBadge } from '../components/ScoreMultiplierBadge';
 import { WordLedger } from '../components/WordLedger';
 import { ComputerThinkingModal } from '../components/ComputerThinkingModal';
 import { Send, Delete, RotateCcw, ArrowRight, User, Bot, AlertTriangle } from 'lucide-react';
+import { soundEffects } from '../utils/sound';
 
 interface GameViewProps {
   initialGame: GameState;
@@ -152,6 +153,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     try {
       const res = await gameApi.submitWord(game.id, trimmed, currentPlayerNum);
       if (res.valid) {
+        soundEffects.playValidWord();
         setFeedback({
           type: 'success',
           message: `Valid word! +${res.length} letters`,
@@ -160,6 +162,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         setCurrentWord('');
         await refreshGame();
       } else {
+        soundEffects.playInvalidWord();
         const isLockout = res.reason.includes('claimed by competitor');
         setFeedback({
           type: isLockout ? 'lockout' : 'error',
@@ -167,6 +170,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         });
       }
     } catch (err) {
+      soundEffects.playInvalidWord();
       console.error('Submit word error:', err);
       setFeedback({ type: 'error', message: 'Error submitting word. Try again.' });
     } finally {
@@ -181,6 +185,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     const maxAvailable = mainWordLetters.counts[l] || 0;
 
     if (currentInInput < maxAvailable) {
+      soundEffects.playTileClick();
       setCurrentWord((prev) => prev + l);
       setFeedback(null);
     }
@@ -188,6 +193,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
   // Backspace handler
   const handleBackspace = () => {
+    soundEffects.playTileClick();
     setCurrentWord((prev) => prev.slice(0, -1));
     setFeedback(null);
   };
@@ -217,6 +223,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         const currentInInput = letterCountsInInput[l] || 0;
         const maxAvailable = mainWordLetters.counts[l] || 0;
         if (currentInInput < maxAvailable) {
+          soundEffects.playTileClick();
           setCurrentWord((prev) => prev + l);
           setFeedback(null);
         }

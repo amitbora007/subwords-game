@@ -79,7 +79,8 @@ subwords/
 │   └── USAGE.md               # Setup, operations, API reference & runbook
 ├── backend/
 │   ├── server.py              # FastAPI backend with game logic & lockout engine
-│   ├── requirements.txt       # Python dependencies
+│   ├── dictionary.py          # Modular curated word lists & O(1) hash set
+│   ├── requirements.txt       # Streamlined core Python dependencies (6 packages)
 │   ├── .env.example           # Backend environment template
 │   └── .env                   # Backend environment variables (gitignored)
 ├── frontend/
@@ -87,12 +88,13 @@ subwords/
 │   │   ├── components/        # Navbar, LetterTile, TimerRing, WordLedger, etc.
 │   │   ├── views/             # HomeView, SetupView, GameView, ResultsView
 │   │   ├── services/          # Axios API service client
+│   │   ├── utils/             # Web Audio API sound synthesizer (sound.ts)
 │   │   ├── types/             # TypeScript definitions
 │   │   ├── App.tsx            # View state machine
 │   │   ├── main.tsx           # React entry point
 │   │   └── index.css          # Tailwind CSS styles
 │   ├── index.html             # HTML5 template with Google Fonts
-│   ├── vite.config.ts         # Vite build configuration with /api proxy
+│   ├── vite.config.ts         # Vite build configuration with chunk splitting & proxy
 │   ├── tailwind.config.js     # Tailwind design tokens
 │   ├── package.json           # React web dependencies
 │   ├── .env.example           # Frontend environment template

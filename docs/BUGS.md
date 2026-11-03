@@ -17,7 +17,7 @@ With the release of **v2.0.0 (ReactJS Web Revamp)**, all previously identified h
 
 ```mermaid
 pie title Remediation Status
-    "Resolved & Verified" : 7
+    "Resolved & Verified" : 14
     "Active Security Advisory (Password Rotation)" : 1
 ```
 
@@ -34,6 +34,13 @@ pie title Remediation Status
 | **`ARCH-001`** | **MEDIUM** | Client-orchestrated computer turn loop | AI move generation is computed atomically on the backend, persisting words and final score directly to MongoDB. | **RESOLVED** |
 | **`CONF-001`** | **LOW** | Port inconsistencies across configs | Standardized backend on port `8001` and frontend on Vite port `5173` with proxy. | **RESOLVED** |
 | **`DATA-001`** | **LOW** | Limited base word list (50 words) | Upgraded to 120+ curated 6+ letter base words with rich anagram permutations. | **RESOLVED** |
+| **`OPT-001`** | **HIGH** | 119 unused third-party dependencies in requirements.txt | Pruned `backend/requirements.txt` from 125 packages down to 6 core packages (`fastapi`, `uvicorn[standard]`, `motor`, `httpx`, `pydantic`, `python-dotenv`). | **RESOLVED** |
+| **`OPT-002`** | **MEDIUM** | 1.2 MB dead Expo mobile assets in web repository | Deleted `frontend/assets/` completely (`SpaceMono-Regular.ttf` and 9 unused PNGs). | **RESOLVED** |
+| **`OPT-003`** | **MEDIUM** | Monolithic server code with embedded 24KB dictionary | Extracted `WORD_LIST` and `VALID_WORDS` into modular `backend/dictionary.py` with dual-import fallback. | **RESOLVED** |
+| **`OPT-004`** | **LOW** | Deprecated `@app.on_event("startup")` and `"shutdown"` | Refactored `backend/server.py` to use modern FastAPI `@asynccontextmanager lifespan(app: FastAPI)`. | **RESOLVED** |
+| **`OPT-005`** | **LOW** | Deprecated `datetime.utcnow()` runtime warnings | Upgraded all datetime operations to timezone-aware `datetime.now(timezone.utc)`. | **RESOLVED** |
+| **`OPT-006`** | **MEDIUM** | Monolithic frontend production bundle | Configured Rollup `manualChunks` in `vite.config.ts` splitting React (`vendor`), UI libraries (`ui`), and app code. | **RESOLVED** |
+| **`OPT-007`** | **LOW** | Lack of tactile audio feedback on interactions | Implemented zero-asset Web Audio API procedural synthesizer (`sound.ts`) with mute persistence. | **RESOLVED** |
 
 ---
 
@@ -45,4 +52,7 @@ pie title Remediation Status
 2. **Compounding Multiplier Scoring**:
    - Verified that score computes as $\left(\sum \text{Lengths}\right) \times \text{Word Count}$ upon each valid submission.
 3. **TypeScript Compilation & Build Verification**:
-   - Full production build completed (`npm run build`) with 0 errors and 0 lint warnings.
+   - Full production build completed (`npm run build`) in 1.4s with 0 errors and Rollup vendor chunking verified.
+4. **Backend Integration & Schema Resilience**:
+   - Automated ASGI integration test verified all endpoints (`/api/`, `/api/game/create`, `/api/game/submit-word`, `/api/game/switch-turn`, `/api/game/{id}`).
+

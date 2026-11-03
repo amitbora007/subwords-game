@@ -13,4 +13,17 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    target: 'es2020',
+    sourcemap: false,
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['lucide-react', 'canvas-confetti'],
+        },
+      },
+    },
+  },
 });

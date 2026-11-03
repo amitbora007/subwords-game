@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { GameState } from '../types/game';
 import confetti from 'canvas-confetti';
 import { Trophy, RefreshCw, Home, CheckCircle2, Award, Zap } from 'lucide-react';
+import { soundEffects } from '../utils/sound';
 
 interface ResultsViewProps {
   game: GameState;
@@ -22,9 +23,10 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
     ? `${game.player1_name} Wins!`
     : `${game.player2_name} Wins!`;
 
-  // Trigger celebration confetti if not tie
+  // Trigger celebration confetti and victory sound if not tie
   useEffect(() => {
     if (!isTie) {
+      soundEffects.playVictory();
       confetti({
         particleCount: 100,
         spread: 70,
