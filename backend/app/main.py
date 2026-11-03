@@ -9,7 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from .core.config import settings
 from .core.database import lifespan
-from .views.game_router import router as game_router
+from .routes.game_router import router as game_router
 
 # Configure root logger
 logging.basicConfig(
