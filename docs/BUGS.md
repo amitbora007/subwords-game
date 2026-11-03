@@ -43,6 +43,7 @@ pie title Remediation Status
 | **`OPT-007`** | **LOW** | Lack of tactile audio feedback on interactions | Implemented zero-asset Web Audio API procedural synthesizer (`sound.ts`) with mute persistence. | **RESOLVED** |
 | **`BUG-008`** | **HIGH** | AI player skipped (0 score/0 words) due to turn race condition | Fixed in `GameView.tsx`: added `isEndingTurn` latch, isolated Single Player AI execution from `switch-turn`, and eliminated double-switch race condition. | **RESOLVED** |
 | **`BUG-009`** | **HIGH** | `ModuleNotFoundError: No module named 'app'` on uvicorn startup | Refactored backend into full MVC architecture under `app/` package (`app.main:app`), with core, models, services, controllers, and views. | **RESOLVED** |
+| **`BUG-010`** | **MEDIUM** | Instant AI turn gave impression of overpowerful bot | Implemented live simulated playback in `GameView.tsx`: animated letter typing, audio feedback, 1.1s–1.9s cognitive pauses, dynamic tile state, and skip control. | **RESOLVED** |
 
 ---
 
@@ -58,7 +59,9 @@ pie title Remediation Status
 4. **MVC Package Architecture**:
    - Verified `app.main:app` entrypoint loading cleanly with `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`.
 5. **TypeScript Compilation & Build Verification**:
-   - Full production build completed (`npm run build`) in 1.4s with 0 errors and Rollup vendor chunking verified.
+   - Full production build completed (`npm run build`) with 0 errors and Rollup vendor chunking verified.
 6. **Backend Integration & Schema Resilience**:
-   - Automated ASGI integration test verified all endpoints (`/api/`, `/api/game/create`, `/api/game/submit-word`, `/api/game/switch-turn`, `/api/game/computer-turn`, `/api/game/{id}`).
+   - Automated ASGI integration test verified all endpoints (`/api/`, `/api/health`, `/api/game/create`, `/api/game/submit-word`, `/api/game/switch-turn`, `/api/game/computer-turn`, `/api/game/{id}`).
+7. **Humanized AI Real-Time Playback**:
+   - Verified AI letters type onto the arena board letter-by-letter with audio clicks, words submit with positive chime, score increments compounding points in real-time, and "Skip to Results" fast-forwards immediately.
 

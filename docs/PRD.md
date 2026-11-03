@@ -108,6 +108,13 @@ $$\forall c \in \Sigma, \quad \text{Count}_{\text{subword}}(c) \le \text{Count}_
 - **Tactile Letter Tiles**: Click or tap letter tiles to spell subwords; remaining letter counts decrement dynamically.
 - **Keyboard Controls**: Desktop players can type letters `A-Z`, press `Backspace` to delete, `Escape` to clear, and `Enter` to submit.
 - **Circular Animated Timer**: Visual SVG ring shifting from Emerald ($> 30$s) to Amber (15–30s) to Red Pulse ($< 15$s).
+- **Humanized Real-Time AI Playback (v2.1)**:
+  - Eliminates the perception of an unfair instant bot by animating the AI's turn directly on the live arena board.
+  - Realistic pacing: 1.1s – 1.9s jittered cognitive delay between words.
+  - Letter-by-letter typing animation with synchronized audio tile clicks (`soundEffects.playTileClick()`).
+  - Auditory confirmation chime upon successful word discovery (`soundEffects.playValidWord()`).
+  - Dynamic live score multiplier updates and board tile frequency badges decrementing in real-time.
+  - "Skip to Results" button allowing players to immediately fast-forward to the match summary.
 - **Victory & Celebration Screen**: Confetti celebration, head-to-head score comparison, base word recap, and side-by-side subwords breakdown.
 
 ---

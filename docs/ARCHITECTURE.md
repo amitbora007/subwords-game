@@ -31,7 +31,7 @@ graph TB
     subgraph "Backend MVC Architecture (app.*)"
         Main[app.main:app Entrypoint]
         CORS[CORS Middleware]
-        
+
         subgraph "Views (Presentation Layer)"
             GameRouter[app.views.game_router]
         end

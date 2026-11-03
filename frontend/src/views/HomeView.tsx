@@ -43,7 +43,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onStart }) => {
       {/* Mode Selection Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
         {/* Single Player Card */}
-        <div 
+        <div
           onClick={() => onStart('pvc')}
           className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900/80 transition-all cursor-pointer group relative overflow-hidden"
         >
@@ -68,7 +68,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onStart }) => {
         </div>
 
         {/* Two Player Card */}
-        <div 
+        <div
           onClick={() => onStart('pvp')}
           className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/80 transition-all cursor-pointer group relative overflow-hidden"
         >

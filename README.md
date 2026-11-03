@@ -24,6 +24,7 @@ A comprehensive documentation suite is maintained in the [`docs/`](docs/) direct
   $$\text{Total Score} = \left( \sum_{i=1}^{N} \text{Length}(W_i) \right) \times N$$
 - **Competitor Word Lockout**: Subwords claimed by Player 1 cannot be reused by the competitor!
 - **Single Player vs AI**: Play against an algorithmic AI bot with 3 difficulty tiers (Easy, Medium, Hard).
+- **Humanized Real-Time AI Playback**: Watch the AI search for words and type them out letter-by-letter live on the arena board with sound effects, realistic pacing (1.1s–1.9s delays), live score compounding, and a "Skip to Results" option.
 - **Two Player Arena**: Local pass-and-play turn competition on the same device.
 - **Dual-Tier Lexical Validation**: High-speed in-memory hash set lookup ($O(1)$) with external Dictionary API fallback.
 - **Interactive Controls**: Touch-friendly 3D letter tiles, click-to-type, and full physical keyboard support (A-Z, Backspace, Enter, Esc).

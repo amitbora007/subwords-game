@@ -16,6 +16,7 @@ def get_controller(db: AsyncIOMotorDatabase = Depends(get_database)) -> GameCont
     return GameController(db)
 
 @router.get("/")
+@router.get("/health")
 async def root():
     """API health and capabilities status"""
     return {

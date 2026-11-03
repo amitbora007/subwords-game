@@ -111,3 +111,31 @@ Word Builder Web Arena uses a **Cyberpunk Emerald Arcade** theme:
 1. **Desktop (1024px – 1440px+)**: Centered container, horizontal scoreboard comparison, full tile row, multi-column word ledger.
 2. **Tablet (768px – 1023px)**: Adaptive wrapping tile grid, vertical ledger stack.
 3. **Mobile (< 768px)**: Large touch-friendly tiles ($44 \times 52\text{px}$ minimum), on-screen backspace/submit actions, vertical scrollable ledger.
+
+---
+
+## 3. Humanized AI Playback & Audio Synthesis Architecture
+
+### 3.1 Pacing & Cognitive Simulation Model
+To prevent player alienation caused by instant computer calculation, the AI's turn is simulated on the client with human-like cognitive delays and typing cadence:
+- **Pre-Word Contemplation**: Jittered delay before beginning a word:
+  $$t_{\text{think}} = 1100\text{ms} + \text{random}(0, 800)\text{ms} \quad (1.1\text{s} - 1.9\text{s})$$
+- **Letter-by-Letter Keystroke Cadence**:
+  $$t_{\text{type}} = 140\text{ms} + \text{random}(0, 60)\text{ms} \quad (140\text{ms} - 200\text{ms per character})$$
+- **Word Discovery Pause**: Brief pause after successful submission:
+  $$t_{\text{celebrate}} = 600\text{ms}$$
+
+### 3.2 Dynamic Board Synchronization
+During AI playback:
+1. `isAiPlaying` flag activates the AI live console and switches the active turn badge to an amber pulsing indicator.
+2. `activeInputWord = isAiPlaying ? aiTypingWord : currentWord` dynamically updates the letter tile frequency badges on the board in real-time as each letter is typed.
+3. `aiLiveScore` calculates compounding points incrementally as each word is confirmed, reflecting in Player 2's header score card.
+4. `aiRevealedWords` populates the word ledger one-by-one.
+
+### 3.3 Audio Feedback Synthesis (Zero Asset Footprint)
+Implemented using pure browser Web Audio API:
+- `soundEffects.playTileClick()`: Sine oscillator burst at 600Hz decaying in 40ms.
+- `soundEffects.playValidWord()`: Dual harmonious chimes at 523Hz (C5) and 659Hz (E5).
+
+### 3.4 Fast-Forward & Skip Interrupt Control
+A `skipAiRef` boolean latch listens to the "Skip to Results" button. When triggered, the animation loop breaks immediately, the final server game state is applied, and the player is transitioned directly to `ResultsView`.

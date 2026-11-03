@@ -94,8 +94,11 @@
    - Press **Enter** to submit. Watch your total score compound:
      $$\text{Score} = (\text{Sum of Lengths}) \times (\text{Total Words})$$
    - Click **"Finish Turn Early"** or let the timer expire.
-6. **AI Turn**:
-   - The AI opponent analyzes available words and claims words not already taken by you.
+6. **AI Turn (Humanized Real-Time Playback)**:
+   - The AI takes its turn live directly on the arena board!
+   - Watch the computer contemplate (1.1s–1.9s pauses) and type subwords letter-by-letter with audio clicks.
+   - The board tiles decrement remaining letter frequencies dynamically, and Player 2's score compounds in real-time.
+   - You can watch the full demonstration or click **"Skip to Results"** at any moment to fast-forward straight to the post-game summary.
 7. **Victory Screen**:
    - Final scores and comparative subwords lists are reviewed with celebration confetti!
 

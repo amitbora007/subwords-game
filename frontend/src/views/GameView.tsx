@@ -5,7 +5,6 @@ import { LetterTile } from '../components/LetterTile';
 import { TimerRing } from '../components/TimerRing';
 import { ScoreMultiplierBadge } from '../components/ScoreMultiplierBadge';
 import { WordLedger } from '../components/WordLedger';
-import { ComputerThinkingModal } from '../components/ComputerThinkingModal';
 import { Send, Delete, RotateCcw, ArrowRight, User, Bot, AlertTriangle } from 'lucide-react';
 import { soundEffects } from '../utils/sound';
 
@@ -19,7 +18,6 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
   const [currentWord, setCurrentWord] = useState<string>('');
   const [timeLeft, setTimeLeft] = useState<number>(initialGame.time_limit || 120);
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [computerThinking, setComputerThinking] = useState<boolean>(false);
   const [isEndingTurn, setIsEndingTurn] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error' | 'lockout';
@@ -27,10 +25,21 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     points?: number;
   } | null>(null);
 
+  // AI Playback State for live, realistic word discovery
+  const [isAiPlaying, setIsAiPlaying] = useState<boolean>(false);
+  const [aiTypingWord, setAiTypingWord] = useState<string>('');
+  const [aiStatus, setAiStatus] = useState<string>('');
+  const [aiRevealedWords, setAiRevealedWords] = useState<Array<{ word: string; valid: boolean; length: number; points: number }>>([]);
+  const [aiLiveScore, setAiLiveScore] = useState<number>(0);
+  const skipAiRef = useRef<boolean>(false);
+
   const timerRef = useRef<any>(null);
   const isEndingTurnRef = useRef<boolean>(false);
   const isComputerMode = game.mode === 'pvc';
-  const isComputerTurn = isComputerMode && (game.current_player === 2 || computerThinking);
+  const isComputerTurn = isComputerMode && (game.current_player === 2 || isAiPlaying);
+
+  // Active input buffer depending on who is typing
+  const activeInputWord = isAiPlaying ? aiTypingWord : currentWord;
 
   // Compute character counts in main_word
   const mainWordLetters = useMemo(() => {
@@ -43,19 +52,19 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
   // Compute letters remaining in input buffer
   const letterCountsInInput = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const l of currentWord.toLowerCase()) counts[l] = (counts[l] || 0) + 1;
+    for (const l of activeInputWord.toLowerCase()) counts[l] = (counts[l] || 0) + 1;
     return counts;
-  }, [currentWord]);
+  }, [activeInputWord]);
 
-  // Active player metrics
-  const currentPlayerNum = game.current_player;
+  // Active player metrics (reflects live AI discoveries during AI turn)
+  const currentPlayerNum = isAiPlaying ? 2 : game.current_player;
   const currentPlayerName = currentPlayerNum === 1 ? game.player1_name : game.player2_name;
-  const currentWords = currentPlayerNum === 1 ? game.player1_words : game.player2_words;
-  const currentScore = currentPlayerNum === 1 ? game.player1_score : game.player2_score;
+  const currentWords = currentPlayerNum === 1 ? game.player1_words : (isAiPlaying ? aiRevealedWords : game.player2_words);
+  const currentScore = currentPlayerNum === 1 ? game.player1_score : (isAiPlaying ? aiLiveScore : game.player2_score);
 
   const competitorNum = currentPlayerNum === 1 ? 2 : 1;
   const competitorName = competitorNum === 1 ? game.player1_name : game.player2_name;
-  const competitorWords = competitorNum === 1 ? game.player1_words : game.player2_words;
+  const competitorWords = competitorNum === 1 ? game.player1_words : (isAiPlaying ? aiRevealedWords : game.player2_words);
 
   // Refresh latest game state from backend
   const refreshGame = useCallback(async () => {
@@ -70,7 +79,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     }
   }, [game.id, onGameOver]);
 
-  // Turn End / Switch Handler with race condition locking
+  // Turn End / Switch Handler with humanized AI move sequence
   const handleEndTurn = useCallback(async () => {
     if (isEndingTurnRef.current) return;
     isEndingTurnRef.current = true;
@@ -86,15 +95,70 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
     try {
       if (isComputerMode) {
-        // Single Player vs AI: trigger AI move generation with visual feedback
-        setComputerThinking(true);
-        const delayPromise = new Promise((resolve) => setTimeout(resolve, 2000));
-        const aiPromise = gameApi.computerTurn(game.id, game.difficulty || 'medium');
+        // Step 1: Initialize AI live playback on the arena board
+        setIsAiPlaying(true);
+        skipAiRef.current = false;
+        setAiStatus('Scanning letters for subwords...');
 
-        await Promise.all([delayPromise, aiPromise]);
+        // Step 2: Fetch AI target words from backend
+        const aiResponse = await gameApi.computerTurn(game.id, game.difficulty || 'medium');
+        const targetWords = aiResponse.words || [];
+
+        let runningRevealed: Array<{ word: string; valid: boolean; length: number; points: number }> = [];
+
+        // Step 3: Sequentially discover each word with realistic human-like delays
+        for (let i = 0; i < targetWords.length; i++) {
+          if (skipAiRef.current) break;
+
+          const wordObj = targetWords[i];
+          const wordText = wordObj.word.toLowerCase();
+
+          // Human cognitive pause (1.2s - 2.0s jitter)
+          setAiStatus(`Searching combinations... (${i + 1}/${targetWords.length})`);
+          await new Promise((r) => setTimeout(r, 1100 + Math.random() * 800));
+          if (skipAiRef.current) break;
+
+          // Animate typing letter by letter with tile sound effects
+          let typed = '';
+          for (let c = 0; c < wordText.length; c++) {
+            if (skipAiRef.current) break;
+            typed += wordText[c];
+            setAiTypingWord(typed);
+            soundEffects.playTileClick();
+            await new Promise((r) => setTimeout(r, 120));
+          }
+          if (skipAiRef.current) break;
+
+          // Brief pause before submitting word
+          await new Promise((r) => setTimeout(r, 280));
+          if (skipAiRef.current) break;
+
+          // Play chime and update compounding score live
+          soundEffects.playValidWord();
+          runningRevealed = [...runningRevealed, wordObj];
+          const wordCount = runningRevealed.length;
+          const baseSum = runningRevealed.reduce((acc, w) => acc + w.length, 0);
+          const liveScore = baseSum * wordCount;
+
+          setAiLiveScore(liveScore);
+          setAiRevealedWords(runningRevealed);
+          setFeedback({
+            type: 'success',
+            message: `AI found "${wordText.toUpperCase()}"! +${wordObj.length} letters`,
+            points: liveScore,
+          });
+          setAiTypingWord('');
+        }
+
+        // Step 4: Conclude AI turn and transition smoothly
+        setAiStatus('AI completed turn! Preparing match results...');
+        if (!skipAiRef.current) {
+          await new Promise((r) => setTimeout(r, 1200));
+        }
+
         const finishedGame = await gameApi.getGame(game.id);
         setGame(finishedGame);
-        setComputerThinking(false);
+        setIsAiPlaying(false);
         onGameOver(finishedGame);
       } else {
         // Two Player Arena: pass turn to competitor
@@ -112,7 +176,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
       }
     } catch (err) {
       console.error('Error completing turn:', err);
-      setComputerThinking(false);
+      setIsAiPlaying(false);
       isEndingTurnRef.current = false;
       setIsEndingTurn(false);
     }
@@ -120,7 +184,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
   // Timer Countdown Effect
   useEffect(() => {
-    if (game.status === 'finished' || computerThinking || isEndingTurn || isComputerTurn) {
+    if (game.status === 'finished' || isAiPlaying || isEndingTurn || isComputerTurn) {
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -148,7 +212,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         timerRef.current = null;
       }
     };
-  }, [game.status, computerThinking, isEndingTurn, isComputerTurn, handleEndTurn]);
+  }, [game.status, isAiPlaying, isEndingTurn, isComputerTurn, handleEndTurn]);
 
   // Word Submit Handler
   const handleSubmitWord = async () => {
@@ -247,9 +311,6 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-4 sm:py-8 space-y-6 animate-fadeIn">
-      {/* AI Thinking Overlay */}
-      {computerThinking && <ComputerThinkingModal difficulty={game.difficulty} />}
-
       {/* Top Bar: Head-to-Head Scoreboard */}
       <div className="grid grid-cols-2 gap-3 sm:gap-6">
         {/* Player 1 Card */}
@@ -303,33 +364,42 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
               </span>
             </div>
             {currentPlayerNum === 2 && (
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-bold">
-                Active Turn
+              <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full font-bold ${
+                isAiPlaying ? 'bg-amber-400 text-slate-950 animate-pulse' : 'bg-amber-500 text-slate-950'
+              }`}>
+                {isAiPlaying ? 'AI Playing Live' : 'Active Turn'}
               </span>
             )}
           </div>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="font-game text-2xl sm:text-3xl font-bold text-white">
-              {game.player2_score} <span className="text-xs font-sans text-slate-400">pts</span>
+              {isAiPlaying ? aiLiveScore : game.player2_score} <span className="text-xs font-sans text-slate-400">pts</span>
             </span>
             <span className="text-xs font-mono text-slate-400">
-              {game.player2_words.filter((w) => w.valid).length} words
+              {isAiPlaying ? aiRevealedWords.length : game.player2_words.filter((w) => w.valid).length} words
             </span>
           </div>
         </div>
       </div>
 
-      {/* Main Word Banner & Live Timer */}
+      {/* Main Word Banner & Live Timer / AI Status */}
       <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 text-center relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-xs font-mono text-slate-400 uppercase tracking-widest">
-            <span className="font-game font-bold text-emerald-400 text-sm tracking-normal mr-2">
+            <span className={`font-game font-bold text-sm tracking-normal mr-2 ${isAiPlaying ? 'text-amber-400' : 'text-emerald-400'}`}>
               {currentPlayerName}'s Turn
             </span>
             <span>• Base Word ({game.main_word.length} Letters)</span>
           </div>
 
-          <TimerRing timeLeft={timeLeft} totalTime={game.time_limit || 120} />
+          {isAiPlaying ? (
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono font-semibold animate-pulse">
+              <Bot className="w-4 h-4 text-amber-400" />
+              <span>AI Opponent Active</span>
+            </div>
+          ) : (
+            <TimerRing timeLeft={timeLeft} totalTime={game.time_limit || 120} />
+          )}
         </div>
 
         {/* Display Main Word Letters as interactive tiles */}
@@ -353,12 +423,62 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         </div>
 
         <p className="text-xs text-slate-500 mt-4">
-          Click tiles or type directly on keyboard • Min 3 letters
+          {isAiPlaying
+            ? 'Watch the AI opponent analyze anagrams and build subwords in real-time'
+            : 'Click tiles or type directly on keyboard • Min 3 letters'}
         </p>
       </div>
 
       {/* Word Input & Controls Area */}
-      {!isComputerTurn && (
+      {isAiPlaying ? (
+        <div className="space-y-3 animate-fadeIn">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-slate-900 border-2 border-amber-500/40 shadow-xl shadow-amber-500/5">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                <Bot className="w-7 h-7 animate-pulse" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-[11px] font-mono uppercase tracking-wider text-amber-400 font-semibold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                  AI Opponent Formulating Subword
+                </div>
+                <div className="font-game text-2xl sm:text-3xl font-bold tracking-widest min-h-[36px] flex items-center">
+                  {aiTypingWord ? (
+                    <span className="text-amber-300 font-extrabold">{aiTypingWord.toUpperCase()}</span>
+                  ) : (
+                    <span className="text-slate-500 text-sm font-sans tracking-normal italic">{aiStatus}</span>
+                  )}
+                  <span className="inline-block w-2.5 h-6 ml-1 bg-amber-400 animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            {/* Skip AI Turn Button */}
+            <button
+              type="button"
+              onClick={() => { skipAiRef.current = true; }}
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400/50 text-slate-300 hover:text-white font-game font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shrink-0"
+              title="Skip animation and view final score"
+            >
+              <span>Skip to Results</span>
+              <ArrowRight className="w-4 h-4 text-amber-400" />
+            </button>
+          </div>
+
+          {/* AI Inline Feedback Banner */}
+          {feedback && (
+            <div className="p-3.5 rounded-xl border text-sm flex items-center justify-between font-medium animate-fadeIn bg-emerald-500/10 border-emerald-500/30 text-emerald-300">
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{feedback.message}</span>
+              </div>
+              {feedback.points !== undefined && (
+                <span className="font-game font-bold text-emerald-400">Score: {feedback.points} pts</span>
+              )}
+            </div>
+          )}
+        </div>
+      ) : !isComputerTurn ? (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             {/* Input field */}
@@ -426,7 +546,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
             </div>
           )}
         </div>
-      )}
+      ) : null}
 
       {/* Multiplier Score breakdown for active player */}
       <ScoreMultiplierBadge words={currentWords} score={currentScore} />
@@ -440,7 +560,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
       />
 
       {/* Turn End Button */}
-      {!isComputerTurn && (
+      {!isComputerTurn && !isAiPlaying && (
         <div className="pt-2 flex justify-end">
           <button
             type="button"

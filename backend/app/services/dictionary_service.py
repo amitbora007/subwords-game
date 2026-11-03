@@ -142,7 +142,7 @@ async def check_dictionary(word: str) -> bool:
     # Tier 1: In-memory O(1) hash set lookup
     if w in VALID_WORDS:
         return True
-    
+
     # Tier 2: Free external dictionary API with 3.0s timeout
     try:
         async with httpx.AsyncClient() as http_client:

@@ -28,9 +28,9 @@ async def lifespan(app: FastAPI):
         logger.info("MongoDB index on games.id ensured.")
     except Exception as e:
         logger.warning(f"Could not create MongoDB index: {e}")
-    
+
     yield
-    
+
     # Shutdown: Close client
     if db_instance.client:
         db_instance.client.close()
