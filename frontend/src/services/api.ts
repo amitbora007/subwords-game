@@ -4,10 +4,16 @@ import { GameState, GameMode, Difficulty, WordSubmitResult } from '../types/game
 const getBaseURL = (): string => {
   const raw = import.meta.env.VITE_BACKEND_URL;
   if (!raw || !raw.trim()) return '/api';
-  let formatted = raw.trim();
-  if (!formatted.startsWith('http://') && !formatted.startsWith('https://') && !formatted.startsWith('/')) {
+  let formatted = raw.trim().replace(/\/+$/, '');
+
+  // Handle Render internal service names (e.g., "subwords-backend" or "https://subwords-backend")
+  const hostOnly = formatted.replace(/^https?:\/\//, '').split('/')[0];
+  if (!hostOnly.includes('.') && !hostOnly.includes('localhost') && !hostOnly.startsWith('/')) {
+    formatted = `https://${hostOnly}.onrender.com`;
+  } else if (!formatted.startsWith('http://') && !formatted.startsWith('https://') && !formatted.startsWith('/')) {
     formatted = `https://${formatted}`;
   }
+
   formatted = formatted.replace(/\/+$/, '');
   return formatted.endsWith('/api') ? formatted : `${formatted}/api`;
 };

@@ -33,7 +33,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_BACKEND_URL
-        fromService:
-          type: web
-          name: subwords-backend
-          property: host
+        value: https://subwords-backend.onrender.com

@@ -45,6 +45,7 @@ pie title Remediation Status
 | **`BUG-009`** | **HIGH** | `ModuleNotFoundError: No module named 'app'` on uvicorn startup | Refactored backend into full MVC architecture under `app/` package (`app.main:app`), with core, models, services, controllers, and views. | **RESOLVED** |
 | **`BUG-010`** | **MEDIUM** | Instant AI turn gave impression of overpowerful bot | Implemented live simulated playback in `GameView.tsx`: animated letter typing, audio feedback, 1.1s–1.9s cognitive pauses, dynamic tile state, and skip control. | **RESOLVED** |
 | **`BUG-011`** | **LOW** | Render blueprint rejected: `services[1].plan no such plan free` | Removed invalid `plan` attribute from static site service in `render.yaml` (Render static sites are free/CDN by default with no compute plans). | **RESOLVED** |
+| **`BUG-012`** | **HIGH** | Client-side API failure on Render (`https://subwords-backend/` unresolved) | Render internal `host` was supplied to client SPA; updated `render.yaml` to explicit `https://subwords-backend.onrender.com` and added auto-domain resolver in `api.ts`. | **RESOLVED** |
 
 ---
 
