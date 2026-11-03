@@ -2,6 +2,18 @@
 
 A mobile word game where 2 players create subwords from a randomly generated word. Features both Player vs Player and Player vs Computer modes with AI opponent.
 
+## 📚 Project Documentation
+
+A comprehensive documentation suite is maintained in the [`docs/`](docs/) directory:
+
+- 📋 [**Product Requirements Document (PRD)**](docs/PRD.md): Business analyst specification covering user stories, acceptance criteria, personas, KPIs, and release scope.
+- 🏗️ [**System Architecture Document**](docs/ARCHITECTURE.md): High-level system architecture, component breakdown, sequence diagrams, and MongoDB schema design.
+- 🎨 [**System & UI/UX Design Document**](docs/DESIGN.md): Algorithmic complexity, dictionary lookup pipeline, design system tokens, typography, and screen layouts.
+- 🐛 [**Bugs & Code Review Audit**](docs/BUGS.md): Defect register, security vulnerability audit (CVSS-rated), and prioritized action plan.
+- 📖 [**Usage & Operations Guide**](docs/USAGE.md): Complete setup instructions, configuration reference, API cheat sheet, and troubleshooting runbook.
+
+> **Living Documentation Policy**: All relevant documents in `docs/` and this `README.md` are continuously updated alongside every code change.
+
 ## 🎮 Game Features
 
 - **Player vs Player Mode**: Local pass-and-play on same device
@@ -100,11 +112,18 @@ npx expo start --web
 ## 📁 Project Structure
 
 ```
-word-builder-game/
+subwords/
+├── docs/
+│   ├── PRD.md                 # Business Analyst Product Requirements Document
+│   ├── ARCHITECTURE.md        # System architecture, sequence diagrams & schema
+│   ├── DESIGN.md              # LLD algorithms & UI/UX design system
+│   ├── BUGS.md                # Defect registry & vulnerability audit
+│   └── USAGE.md               # Setup, operations, API reference & runbook
 ├── backend/
 │   ├── server.py              # FastAPI backend with all game logic
 │   ├── requirements.txt       # Python dependencies
-│   └── .env                   # Backend environment variables
+│   ├── .env.example           # Backend environment template
+│   └── .env                   # Backend environment variables (gitignored)
 ├── frontend/
 │   ├── app/
 │   │   ├── index.tsx          # Home screen
@@ -114,8 +133,11 @@ word-builder-game/
 │   ├── assets/                # Images and assets
 │   ├── package.json           # Frontend dependencies
 │   ├── app.json              # Expo configuration
-│   └── .env                   # Frontend environment variables
-└── README.md                  # This file
+│   ├── .env.example           # Frontend environment template
+│   └── .env                   # Frontend environment variables (gitignored)
+├── .gitignore                 # Git ignore rules for Python, Node, OS & secrets
+├── QUICKSTART.md              # Quick setup guide
+└── README.md                  # Main project overview & documentation index
 ```
 
 ## 🎯 How to Play
