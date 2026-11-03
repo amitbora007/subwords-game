@@ -20,7 +20,7 @@ graph TB
     subgraph "Client Layer (Web Application)"
         Browser[Modern Web Browser Desktop / Mobile]
         ReactApp[React 18/19 Single Page App]
-        ViteDev[Vite Bundler & Dev Proxy]
+        ViteDev[Vite Bundler & Dev Proxy :5173]
         AxiosClient[Axios HTTP REST Client]
 
         Browser --> ReactApp
@@ -28,17 +28,31 @@ graph TB
         AxiosClient --> ViteDev
     end
 
-    subgraph "API & Gateway Layer"
-        CORS[FastAPI CORS Middleware]
-        APIRouter[FastAPI APIRouter /api]
-    end
+    subgraph "Backend MVC Architecture (app.*)"
+        Main[app.main:app Entrypoint]
+        CORS[CORS Middleware]
+        
+        subgraph "Views (Presentation Layer)"
+            GameRouter[app.views.game_router]
+        end
 
-    subgraph "Application Core (FastAPI Backend)"
-        GameService[Game Session Service]
-        ScoreEngine[Compounding Multiplier Scoring Engine]
-        LockoutValidator[Competitor Lockout & Permutation Validator]
-        AIEngine[AI Opponent Move Generator]
-        LocalDict[In-Memory Lexical Cache 2,000+ Words]
+        subgraph "Controllers (Business Orchestration)"
+            GameController[app.controllers.GameController]
+        end
+
+        subgraph "Models (Domain Entities & DTOs)"
+            GameModels[app.models.Game, GameCreate, WordSubmit]
+        end
+
+        subgraph "Services (Core Algorithms)"
+            GameService[app.services.GameService]
+            DictService[app.services.dictionary_service]
+        end
+
+        subgraph "Core (Config & Database)"
+            Config[app.core.config]
+            Database[app.core.database AsyncIOMotorClient]
+        end
     end
 
     subgraph "Data & External Layer"
@@ -46,18 +60,16 @@ graph TB
         DictAPI[Free Dictionary API: dictionaryapi.dev]
     end
 
-    ViteDev -->|HTTP REST /api| CORS
-    CORS --> APIRouter
-    APIRouter --> GameService
-    APIRouter --> ScoreEngine
-    APIRouter --> LockoutValidator
-    APIRouter --> AIEngine
-
-    LockoutValidator --> LocalDict
-    LockoutValidator -.->|Fallback on Cache Miss| DictAPI
-
-    AIEngine --> LocalDict
-    GameService -->|Motor Async Driver| MongoDB
+    ViteDev -->|HTTP REST /api| Main
+    Main --> CORS
+    CORS --> GameRouter
+    GameRouter --> GameController
+    GameController --> GameModels
+    GameController --> GameService
+    GameController --> DictService
+    GameController --> Database
+    Database --> MongoDB
+    DictService -.->|Fallback on Cache Miss| DictAPI
 ```
 
 ---

@@ -42,13 +42,14 @@
    DB_NAME="subwords_db"
    ```
 
-4. **Launch the FastAPI Server**:
+4. **Launch the FastAPI Server (MVC Architecture)**:
    ```bash
-   uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+   uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
    ```
-   - **Base URL**: `http://localhost:8001`
-   - **Interactive OpenAPI (Swagger)**: `http://localhost:8001/docs`
-   - **Health Probe**: `http://localhost:8001/api/`
+   *(Legacy command `uvicorn server:app` is also supported via compatibility proxy).*
+   - **Base URL**: `http://localhost:8000`
+   - **Interactive OpenAPI (Swagger)**: `http://localhost:8000/docs`
+   - **Health Probe**: `http://localhost:8000/api/`
 
 ---
 
@@ -69,7 +70,7 @@
    npm run dev
    ```
    - **Web Arena URL**: `http://localhost:5173`
-   - Vite automatically proxies `/api` requests to `http://localhost:8001`.
+   - Vite automatically proxies `/api` requests to `http://localhost:8000`.
 
 4. **Build for Production**:
    ```bash

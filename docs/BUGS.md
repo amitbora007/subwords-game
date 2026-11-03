@@ -17,7 +17,7 @@ With the release of **v2.0.0 (ReactJS Web Revamp)**, all previously identified h
 
 ```mermaid
 pie title Remediation Status
-    "Resolved & Verified" : 14
+    "Resolved & Verified" : 16
     "Active Security Advisory (Password Rotation)" : 1
 ```
 
@@ -41,6 +41,8 @@ pie title Remediation Status
 | **`OPT-005`** | **LOW** | Deprecated `datetime.utcnow()` runtime warnings | Upgraded all datetime operations to timezone-aware `datetime.now(timezone.utc)`. | **RESOLVED** |
 | **`OPT-006`** | **MEDIUM** | Monolithic frontend production bundle | Configured Rollup `manualChunks` in `vite.config.ts` splitting React (`vendor`), UI libraries (`ui`), and app code. | **RESOLVED** |
 | **`OPT-007`** | **LOW** | Lack of tactile audio feedback on interactions | Implemented zero-asset Web Audio API procedural synthesizer (`sound.ts`) with mute persistence. | **RESOLVED** |
+| **`BUG-008`** | **HIGH** | AI player skipped (0 score/0 words) due to turn race condition | Fixed in `GameView.tsx`: added `isEndingTurn` latch, isolated Single Player AI execution from `switch-turn`, and eliminated double-switch race condition. | **RESOLVED** |
+| **`BUG-009`** | **HIGH** | `ModuleNotFoundError: No module named 'app'` on uvicorn startup | Refactored backend into full MVC architecture under `app/` package (`app.main:app`), with core, models, services, controllers, and views. | **RESOLVED** |
 
 ---
 
@@ -51,8 +53,12 @@ pie title Remediation Status
      `{"valid": false, "reason": "Word already claimed by competitor!"}`.
 2. **Compounding Multiplier Scoring**:
    - Verified that score computes as $\left(\sum \text{Lengths}\right) \times \text{Word Count}$ upon each valid submission.
-3. **TypeScript Compilation & Build Verification**:
+3. **AI Opponent Execution**:
+   - Verified that in `pvc` mode, Player 1 turn ends $\to$ AI generates valid words respecting competitor lockout $\to$ calculates multiplier score $\to$ finalizes match.
+4. **MVC Package Architecture**:
+   - Verified `app.main:app` entrypoint loading cleanly with `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`.
+5. **TypeScript Compilation & Build Verification**:
    - Full production build completed (`npm run build`) in 1.4s with 0 errors and Rollup vendor chunking verified.
-4. **Backend Integration & Schema Resilience**:
-   - Automated ASGI integration test verified all endpoints (`/api/`, `/api/game/create`, `/api/game/submit-word`, `/api/game/switch-turn`, `/api/game/{id}`).
+6. **Backend Integration & Schema Resilience**:
+   - Automated ASGI integration test verified all endpoints (`/api/`, `/api/game/create`, `/api/game/submit-word`, `/api/game/switch-turn`, `/api/game/computer-turn`, `/api/game/{id}`).
 

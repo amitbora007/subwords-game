@@ -47,14 +47,14 @@ Ensure MongoDB is running locally or configured via `.env`:
 sudo systemctl start mongod
 ```
 
-### 2. Start Backend (FastAPI)
+### 2. Start Backend (FastAPI MVC Architecture)
 ```bash
 cd backend
 source .venv/bin/activate
-uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-- API is available at: `http://localhost:8001`
-- Swagger UI docs: `http://localhost:8001/docs`
+- API is available at: `http://localhost:8000`
+- Swagger UI docs: `http://localhost:8000/docs`
 
 ### 3. Start Frontend (React Web App)
 Open a new terminal:
@@ -78,8 +78,15 @@ subwords/
 │   ├── BUGS.md                # Defect registry & vulnerability audit
 │   └── USAGE.md               # Setup, operations, API reference & runbook
 ├── backend/
-│   ├── server.py              # FastAPI backend with game logic & lockout engine
-│   ├── dictionary.py          # Modular curated word lists & O(1) hash set
+│   ├── app/                   # MVC Architecture Package
+│   │   ├── main.py            # FastAPI entrypoint, CORS, router mounting
+│   │   ├── core/              # Config (settings) & database lifecycle (lifespan)
+│   │   ├── models/            # Pydantic domain models (Game, GameCreate, etc.)
+│   │   ├── services/          # Scoring engine, lockout, dictionary & AI bot algorithms
+│   │   ├── controllers/       # Controller orchestrating DB queries & business logic
+│   │   └── views/             # API presentation router (/api endpoints)
+│   ├── server.py              # Backward-compatible proxy to app.main:app
+│   ├── dictionary.py          # Backward-compatible proxy to app.services.dictionary_service
 │   ├── requirements.txt       # Streamlined core Python dependencies (6 packages)
 │   ├── .env.example           # Backend environment template
 │   └── .env                   # Backend environment variables (gitignored)

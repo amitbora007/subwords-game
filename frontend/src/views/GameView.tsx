@@ -20,6 +20,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
   const [timeLeft, setTimeLeft] = useState<number>(initialGame.time_limit || 120);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [computerThinking, setComputerThinking] = useState<boolean>(false);
+  const [isEndingTurn, setIsEndingTurn] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error' | 'lockout';
     message: string;
@@ -27,8 +28,9 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
   } | null>(null);
 
   const timerRef = useRef<any>(null);
+  const isEndingTurnRef = useRef<boolean>(false);
   const isComputerMode = game.mode === 'pvc';
-  const isComputerTurn = isComputerMode && game.current_player === 2;
+  const isComputerTurn = isComputerMode && (game.current_player === 2 || computerThinking);
 
   // Compute character counts in main_word
   const mainWordLetters = useMemo(() => {
@@ -68,76 +70,85 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     }
   }, [game.id, onGameOver]);
 
-  // Turn Switch Handler
+  // Turn End / Switch Handler with race condition locking
   const handleEndTurn = useCallback(async () => {
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (isEndingTurnRef.current) return;
+    isEndingTurnRef.current = true;
+    setIsEndingTurn(true);
+
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    setCurrentWord('');
+    setFeedback(null);
 
     try {
-      const res = await gameApi.switchTurn(game.id);
-      const updatedGame = await gameApi.getGame(game.id);
-      setGame(updatedGame);
-      setCurrentWord('');
-      setFeedback(null);
+      if (isComputerMode) {
+        // Single Player vs AI: trigger AI move generation with visual feedback
+        setComputerThinking(true);
+        const delayPromise = new Promise((resolve) => setTimeout(resolve, 2000));
+        const aiPromise = gameApi.computerTurn(game.id, game.difficulty || 'medium');
 
-      if (res.status === 'finished' || updatedGame.status === 'finished') {
-        onGameOver(updatedGame);
+        await Promise.all([delayPromise, aiPromise]);
+        const finishedGame = await gameApi.getGame(game.id);
+        setGame(finishedGame);
+        setComputerThinking(false);
+        onGameOver(finishedGame);
       } else {
-        // Reset timer for next player
-        setTimeLeft(updatedGame.time_limit || 120);
+        // Two Player Arena: pass turn to competitor
+        const res = await gameApi.switchTurn(game.id);
+        const updatedGame = await gameApi.getGame(game.id);
+        setGame(updatedGame);
+
+        if (res.status === 'finished' || updatedGame.status === 'finished') {
+          onGameOver(updatedGame);
+        } else {
+          setTimeLeft(updatedGame.time_limit || 120);
+          isEndingTurnRef.current = false;
+          setIsEndingTurn(false);
+        }
       }
     } catch (err) {
-      console.error('Error switching turn:', err);
-    }
-  }, [game.id, onGameOver]);
-
-  // Computer AI turn orchestration
-  const runComputerTurn = useCallback(async () => {
-    setComputerThinking(true);
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    // Simulate natural thinking delay
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-
-    try {
-      await gameApi.computerTurn(game.id, game.difficulty || 'medium');
-      const finishedGame = await gameApi.getGame(game.id);
-      setGame(finishedGame);
+      console.error('Error completing turn:', err);
       setComputerThinking(false);
-      onGameOver(finishedGame);
-    } catch (err) {
-      console.error('Computer turn failed:', err);
-      setComputerThinking(false);
+      isEndingTurnRef.current = false;
+      setIsEndingTurn(false);
     }
-  }, [game.id, game.difficulty, onGameOver]);
-
-  // Detect computer's turn
-  useEffect(() => {
-    if (isComputerMode && game.current_player === 2 && game.status === 'active') {
-      runComputerTurn();
-    }
-  }, [game.current_player, game.status, isComputerMode, runComputerTurn]);
+  }, [game.id, game.difficulty, isComputerMode, onGameOver]);
 
   // Timer Countdown Effect
   useEffect(() => {
-    if (game.status === 'finished' || computerThinking || isComputerTurn) {
-      if (timerRef.current) clearInterval(timerRef.current);
+    if (game.status === 'finished' || computerThinking || isEndingTurn || isComputerTurn) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
       return;
     }
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
           handleEndTurn();
-          return game.time_limit || 120;
+          return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     };
-  }, [game.status, game.time_limit, computerThinking, isComputerTurn, handleEndTurn]);
+  }, [game.status, computerThinking, isEndingTurn, isComputerTurn, handleEndTurn]);
 
   // Word Submit Handler
   const handleSubmitWord = async () => {
@@ -434,9 +445,10 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
           <button
             type="button"
             onClick={handleEndTurn}
-            className="px-6 py-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 font-game font-bold text-base flex items-center gap-2 transition-all cursor-pointer"
+            disabled={isEndingTurn || submitting}
+            className="px-6 py-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 disabled:opacity-50 disabled:cursor-not-allowed font-game font-bold text-base flex items-center gap-2 transition-all cursor-pointer"
           >
-            <span>Finish Turn Early</span>
+            <span>{isEndingTurn ? 'Ending Turn...' : isComputerMode ? 'Finish & Run AI Turn' : 'Finish Turn Early'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
