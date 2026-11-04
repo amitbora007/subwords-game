@@ -88,29 +88,51 @@ Word Builder Web Arena uses a **Cyberpunk Emerald Arcade** theme:
 
 ---
 
-### 2.3 Responsive Layout Grids
+### 2.3 Responsive Layout Grids & Multi-Device Architecture
 
 ```
-+--------------------------------------------------------------+
-| [W] SUBWORDS v2.0                                    [Rules] |
-+--------------------------------------------------------------+
-| [ Player 1: 36 pts ]                  [ Player 2: 16 pts ]   |
-+--------------------------------------------------------------+
-| ROOT BASE WORD (6+ Letters)                (Time Left: 01:24)|
-|   [ P ]  [ L ]  [ A ]  [ N ]  [ E ]  [ T ]  [ S ]             |
-+--------------------------------------------------------------+
-| [                     P L A N E                     ] [Sub]  |
-+--------------------------------------------------------------+
-| MULTIPLIER: SUM (12) x COUNT (3) = 36 pts                    |
-+--------------------------------------------------------------+
-| Your Subwords (3):               | Claimed by Opponent (1):  |
-|  [✓ PLANES +18] [✓ NET +9]...    |  [🔒 PLANT]               |
-+--------------------------------------------------------------+
+DESKTOP (>= 1024px) 12-Column Split Dashboard (max-w-7xl):
++---------------------------------------------------------------------------------+
+| [W] SUBWORDS v2.0                                                       [Rules] |
++---------------------------------------------------+-----------------------------+
+| LEFT ARENA (Cols 1-7)                             | RIGHT HUD (Cols 8-12 Sticky)|
+| +-----------------------------------------------+ | +-------------------------+ |
+| | [P1: 13 pts (Active)]    [P2: 15 pts]         | | | TOTAL SCORE: 13 pts     | |
+| +-----------------------------------------------+ | | 3 Words | 1pt/L | 13 pts| |
+| | BASE WORD (7 Letters)        (Time: 01:24)    | | +-------------------------+ |
+| |   [ P ]  [ L ]  [ A ]  [ N ]  [ E ]  [ T ]    | | | YOUR SUBWORDS (3):      | |
+| +-----------------------------------------------+ | | [✓ PLANET +6] [✓ PLAN +4] |
+| | [ TYPE OR TAP TILES...          ] [⌫] [Submit]| | | [✓ TEA +3]              | |
+| +-----------------------------------------------+ | +-------------------------+ |
+| | Valid word! +6 pts            Total: 13 pts   | | | LOCKED OUT BY OPPONENT: | |
+| +-----------------------------------------------+ | | [🔒 PLANT] [🔒 NET]     | |
+| | Press Enter to submit     [Finish Turn Early ->| | +-------------------------+ |
+| +-----------------------------------------------+ | | Shortcuts: Enter / Esc  | |
++---------------------------------------------------+-----------------------------+
+
+MOBILE & TABLET (< 1024px) Single-Column Unified Flow:
++-------------------------------------------------------------+
+| [P1: 13 pts (Active)]                 [P2: 15 pts]          |
+| Base Word: [ P ] [ L ] [ A ] [ N ] [ E ] [ T ] [ S ]        |
+| [ Input Field...               ] [⌫] [Submit ↵]             |
+| Total Score Card: 13 pts (1 pt / letter)                    |
+| Your Subwords (3) & Locked Competitor Words                 |
+| [Finish Turn Button]                                        |
++-------------------------------------------------------------+
 ```
 
-1. **Desktop (1024px – 1440px+)**: Centered container, horizontal scoreboard comparison, full tile row, multi-column word ledger.
-2. **Tablet (768px – 1023px)**: Adaptive wrapping tile grid, vertical ledger stack.
-3. **Mobile (< 768px)**: Large touch-friendly tiles ($44 \times 52\text{px}$ minimum), on-screen backspace/submit actions, vertical scrollable ledger.
+1. **Widescreen & Desktop ($\ge 1024\text{px}$)**:
+   - 12-column split dashboard layout (`max-w-7xl` container) eliminating empty margins.
+   - Left side (Cols 1–7) holds the interactive play arena (Scoreboard, Base Word, Input, Feedback, Turn Controls).
+   - Right side (Cols 8–12) holds the sticky HUD (Score breakdown, word ledger with height budgeting, competitor lockout, keyboard shortcuts).
+2. **Tablet ($640\text{px} - 1023\text{px}$)**:
+   - Fluid centered layout (`max-w-2xl` to `max-w-3xl`) with stacked action arena and full-width ledger.
+3. **Mobile ($< 640\text{px}$, 375px–430px)**:
+   - Touch-optimized vertical stack with minimum $44\text{px}$ tap targets, responsive tile dimensions ($40\times 48\text{px}$ to $44\times 52\text{px}$), and on-screen tactile backspace/clear actions.
+4. **Layout Shift (CLS = 0) Stability**:
+   - `html { scrollbar-gutter: stable; }` prevents horizontal width shifts when scrollbars appear.
+   - `<main>` anchors with `justify-start` in active game view to stop vertical viewport jumping.
+   - Tabular numerals (`tabular-nums font-mono`) prevent width jitter on scores and countdown timers.
 
 ---
 
