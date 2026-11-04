@@ -31,8 +31,8 @@ export const TimerRing: React.FC<TimerRingProps> = ({ timeLeft, totalTime }) => 
       isCritical ? 'border-rose-500/50 bg-rose-500/10 animate-pulse' : 'border-slate-800'
     }`}>
       {/* Circular SVG Ring */}
-      <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0">
-        <svg height={radius * 2} width={radius * 2} className="transform -rotate-90 scale-[0.85] sm:scale-100">
+      <div className="relative w-11 h-11 sm:w-13 sm:h-13 flex items-center justify-center shrink-0">
+        <svg viewBox="0 0 64 64" className="w-full h-full transform -rotate-90">
           <circle
             stroke="#1e293b"
             fill="transparent"
@@ -53,7 +53,9 @@ export const TimerRing: React.FC<TimerRingProps> = ({ timeLeft, totalTime }) => 
             cy={radius}
           />
         </svg>
-        <Clock className={`w-4 h-4 sm:w-5 sm:h-5 absolute ${colorClass}`} />
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Clock className={`w-4 h-4 sm:w-5 sm:h-5 ${colorClass}`} />
+        </div>
       </div>
 
       {/* Numerical display */}

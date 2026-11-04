@@ -33,6 +33,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
   const [aiRevealedWords, setAiRevealedWords] = useState<Array<{ word: string; valid: boolean; length: number; points: number }>>([]);
   const [aiLiveScore, setAiLiveScore] = useState<number>(0);
   const skipAiRef = useRef<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const timerRef = useRef<any>(null);
   const isEndingTurnRef = useRef<boolean>(false);
@@ -261,6 +262,40 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     }
   };
 
+  // Handle direct typing in the input field (for mobile soft keyboards and physical typing)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isComputerTurn || submitting) return;
+    const raw = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
+
+    // Re-validate character counts against main_word letter limits
+    let newWord = '';
+    const counts: Record<string, number> = {};
+    for (const char of raw) {
+      const cur = counts[char] || 0;
+      const max = mainWordLetters.counts[char] || 0;
+      if (cur < max) {
+        counts[char] = cur + 1;
+        newWord += char;
+      }
+    }
+
+    if (newWord.length > currentWord.length) {
+      soundEffects.playTileClick();
+    }
+    setCurrentWord(newWord);
+    setFeedback(null);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmitWord();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleClear();
+    }
+  };
+
   // Append letter to current input
   const handleLetterClick = (letter: string) => {
     const l = letter.toLowerCase();
@@ -287,10 +322,12 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     setFeedback(null);
   };
 
-  // Keyboard navigation listener (A-Z, Backspace, Enter)
+  // Keyboard navigation listener (A-Z, Backspace, Enter) for when input is not focused
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isComputerTurn || submitting) return;
+      // If the input element itself is active, let native input handlers process it
+      if (document.activeElement === inputRef.current) return;
 
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -492,13 +529,27 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         </div>
       ) : !isComputerTurn ? (
         <div className="space-y-3">
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmitWord();
+            }}
+            className="flex items-center gap-1.5 sm:gap-2"
+          >
             {/* Input field */}
             <div className={`relative flex-1 ${isShaking ? 'animate-shake' : ''}`}>
               <input
+                ref={inputRef}
                 type="text"
-                readOnly
+                inputMode="text"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                autoComplete="off"
+                spellCheck={false}
+                enterKeyHint="send"
                 value={currentWord.toUpperCase()}
+                onChange={handleInputChange}
+                onKeyDown={handleInputKeyDown}
                 placeholder="TYPE OR TAP TILES..."
                 className={`w-full py-2.5 px-3 sm:py-4 sm:px-5 rounded-xl sm:rounded-2xl bg-slate-900 border-2 text-center font-game text-xl xs:text-2xl sm:text-3xl font-bold tracking-wider sm:tracking-widest placeholder:text-slate-600 placeholder:text-xs xs:placeholder:text-sm sm:placeholder:text-base md:placeholder:text-lg placeholder:tracking-normal focus:outline-none transition-colors ${
                   isShaking
@@ -531,15 +582,14 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
             {/* Submit Word Button */}
             <button
-              type="button"
-              onClick={handleSubmitWord}
+              type="submit"
               disabled={submitting || currentWord.length < 3}
               className="h-[46px] sm:h-[58px] px-3.5 sm:px-6 rounded-xl sm:rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-game font-bold text-sm sm:text-lg flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95 shrink-0"
             >
               <Send className="w-4 h-4 sm:w-5 sm:h-5 fill-slate-950" />
               <span className="hidden sm:inline">Submit</span>
             </button>
-          </div>
+          </form>
 
           {/* Inline Feedback Banner */}
           {feedback && (
