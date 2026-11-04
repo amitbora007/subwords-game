@@ -27,12 +27,12 @@ export const TimerRing: React.FC<TimerRingProps> = ({ timeLeft, totalTime }) => 
     : 'text-emerald-400 stroke-emerald-400';
 
   return (
-    <div className={`relative flex items-center gap-3 px-4 py-2 rounded-2xl glass-panel border ${
+    <div className={`relative flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl glass-panel border shrink-0 ${
       isCritical ? 'border-rose-500/50 bg-rose-500/10 animate-pulse' : 'border-slate-800'
     }`}>
       {/* Circular SVG Ring */}
-      <div className="relative w-14 h-14 flex items-center justify-center">
-        <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
+      <div className="relative w-11 h-11 sm:w-13 sm:h-13 flex items-center justify-center shrink-0">
+        <svg viewBox="0 0 64 64" className="w-full h-full transform -rotate-90">
           <circle
             stroke="#1e293b"
             fill="transparent"
@@ -53,13 +53,15 @@ export const TimerRing: React.FC<TimerRingProps> = ({ timeLeft, totalTime }) => 
             cy={radius}
           />
         </svg>
-        <Clock className={`w-5 h-5 absolute ${colorClass}`} />
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Clock className={`w-4 h-4 sm:w-5 sm:h-5 ${colorClass}`} />
+        </div>
       </div>
 
       {/* Numerical display */}
       <div>
-        <div className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">Time Left</div>
-        <div className={`font-game text-2xl font-bold tracking-wider leading-none ${colorClass}`}>
+        <div className="text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold text-slate-400">Time Left</div>
+        <div className={`font-game text-lg sm:text-2xl font-bold tracking-wider leading-none tabular-nums ${colorClass}`}>
           {formattedTime}
         </div>
       </div>

@@ -66,58 +66,58 @@ export const SetupView: React.FC<SetupViewProps> = ({
         <span>Back to Home</span>
       </button>
 
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl space-y-8">
+      <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-800 shadow-2xl space-y-6 sm:space-y-8">
         <div>
-          <h2 className="font-game text-3xl font-bold text-white">Match Setup</h2>
-          <p className="text-slate-400 text-sm mt-1">Configure your arena rules and competitor settings.</p>
+          <h2 className="font-game text-2xl sm:text-3xl font-bold text-white">Match Setup</h2>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1">Configure your arena rules and competitor settings.</p>
         </div>
 
         {errorMsg && (
-          <div className="flex items-center gap-2 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400" />
+          <div className="flex items-center gap-2 p-3 sm:p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs sm:text-sm">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-rose-400" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {/* 1. Game Mode Selector */}
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           <label className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold">
             1. Select Mode
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
             <button
               type="button"
               onClick={() => setMode('pvc')}
-              className={`p-4 rounded-2xl border text-left transition-all flex items-center gap-3.5 cursor-pointer ${
+              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border text-left transition-all flex items-center gap-3 cursor-pointer ${
                 mode === 'pvc'
                   ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
                   : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
               }`}
             >
-              <div className={`p-2 rounded-xl ${mode === 'pvc' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
+              <div className={`p-2.5 rounded-xl shrink-0 ${mode === 'pvc' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
                 <Bot className="w-5 h-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="font-game font-bold text-base leading-tight">Vs Computer</div>
-                <div className="text-xs text-slate-400">Play solo vs AI bot</div>
+                <div className="text-xs text-slate-400 truncate">Play solo against smart AI bot</div>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setMode('pvp')}
-              className={`p-4 rounded-2xl border text-left transition-all flex items-center gap-3.5 cursor-pointer ${
+              className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border text-left transition-all flex items-center gap-3 cursor-pointer ${
                 mode === 'pvp'
                   ? 'bg-amber-500/15 border-amber-500 text-white shadow-lg shadow-amber-500/10'
                   : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
               }`}
             >
-              <div className={`p-2 rounded-xl ${mode === 'pvp' ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
+              <div className={`p-2.5 rounded-xl shrink-0 ${mode === 'pvp' ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
                 <Users className="w-5 h-5" />
               </div>
-              <div>
-                <div className="font-game font-bold text-base leading-tight">2 Players</div>
-                <div className="text-xs text-slate-400">Pass & Play match</div>
+              <div className="min-w-0">
+                <div className="font-game font-bold text-base leading-tight">Two Players</div>
+                <div className="text-xs text-slate-400 truncate">Pass & Play local match</div>
               </div>
             </button>
           </div>
@@ -125,23 +125,23 @@ export const SetupView: React.FC<SetupViewProps> = ({
 
         {/* 2. Difficulty Selector (PvC Only) */}
         {mode === 'pvc' && (
-          <div className="space-y-3 animate-fadeIn">
+          <div className="space-y-2.5 sm:space-y-3 animate-fadeIn">
             <label className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold">
               2. AI Difficulty
             </label>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
               {(['easy', 'medium', 'hard'] as Difficulty[]).map((diff) => (
                 <button
                   key={diff}
                   type="button"
                   onClick={() => setDifficulty(diff)}
-                  className={`py-3 px-3 rounded-xl border text-center transition-all cursor-pointer ${
+                  className={`py-2.5 sm:py-3 px-2 sm:px-3 rounded-xl border text-center transition-all cursor-pointer ${
                     difficulty === diff
                       ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold shadow-md shadow-emerald-500/10'
                       : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
-                  <div className="font-game capitalize text-base">{diff}</div>
+                  <div className="font-game capitalize text-sm sm:text-base">{diff}</div>
                   <div className="text-[10px] text-slate-400 mt-0.5">
                     {diff === 'easy' ? '3-5 words' : diff === 'medium' ? '5-8 words' : '8-12 words'}
                   </div>
@@ -152,7 +152,7 @@ export const SetupView: React.FC<SetupViewProps> = ({
         )}
 
         {/* 3. Configurable Turn Timer */}
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-400" />
@@ -161,13 +161,13 @@ export const SetupView: React.FC<SetupViewProps> = ({
             <span className="text-xs font-game font-bold text-amber-400">{timeLimit} Seconds</span>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
             {TIMER_PRESETS.map((seconds) => (
               <button
                 key={seconds}
                 type="button"
                 onClick={() => setTimeLimit(seconds)}
-                className={`flex-1 min-w-[55px] py-2 px-3 rounded-xl border text-center text-xs font-mono font-bold transition-all cursor-pointer ${
+                className={`py-2 sm:py-2.5 rounded-xl border text-center text-xs font-mono font-bold transition-all cursor-pointer ${
                   timeLimit === seconds
                     ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md shadow-amber-500/10'
                     : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
