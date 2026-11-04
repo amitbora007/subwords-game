@@ -24,6 +24,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     message: string;
     points?: number;
   } | null>(null);
+  const [isShaking, setIsShaking] = useState<boolean>(false);
 
   // AI Playback State for live, realistic word discovery
   const [isAiPlaying, setIsAiPlaying] = useState<boolean>(false);
@@ -212,13 +213,27 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     };
   }, [game.status, isAiPlaying, isEndingTurn, isComputerTurn, handleEndTurn]);
 
+  // Handle invalid/error submission with auto-reset and visual feedback
+  const triggerInputError = (message: string, isLockout = false) => {
+    soundEffects.playInvalidWord();
+    setFeedback({
+      type: isLockout ? 'lockout' : 'error',
+      message,
+    });
+    setIsShaking(true);
+    setCurrentWord('');
+    setTimeout(() => {
+      setIsShaking(false);
+    }, 400);
+  };
+
   // Word Submit Handler
   const handleSubmitWord = async () => {
     const trimmed = currentWord.trim().toLowerCase();
     if (!trimmed || submitting || isComputerTurn) return;
 
     if (trimmed.length < 3) {
-      setFeedback({ type: 'error', message: 'Word must be at least 3 letters' });
+      triggerInputError('Word must be at least 3 letters');
       return;
     }
 
@@ -235,17 +250,12 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         setCurrentWord('');
         await refreshGame();
       } else {
-        soundEffects.playInvalidWord();
         const isLockout = res.reason.includes('claimed by competitor');
-        setFeedback({
-          type: isLockout ? 'lockout' : 'error',
-          message: res.reason,
-        });
+        triggerInputError(res.reason, isLockout);
       }
     } catch (err) {
-      soundEffects.playInvalidWord();
       console.error('Submit word error:', err);
-      setFeedback({ type: 'error', message: 'Error submitting word. Try again.' });
+      triggerInputError('Error submitting word. Try again.');
     } finally {
       setSubmitting(false);
     }
@@ -480,13 +490,17 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             {/* Input field */}
-            <div className="relative flex-1">
+            <div className={`relative flex-1 ${isShaking ? 'animate-shake' : ''}`}>
               <input
                 type="text"
                 readOnly
                 value={currentWord.toUpperCase()}
                 placeholder="TYPE OR TAP TILES..."
-                className="w-full py-4 px-5 rounded-2xl bg-slate-900 border-2 border-slate-700 text-center font-game text-2xl sm:text-3xl font-bold tracking-widest text-emerald-400 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                className={`w-full py-4 px-5 rounded-2xl bg-slate-900 border-2 text-center font-game text-2xl sm:text-3xl font-bold tracking-widest placeholder:text-slate-600 focus:outline-none transition-colors ${
+                  isShaking
+                    ? 'border-rose-500 text-rose-400'
+                    : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
+                }`}
               />
               {currentWord && (
                 <button
