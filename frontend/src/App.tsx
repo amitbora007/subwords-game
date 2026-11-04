@@ -80,7 +80,7 @@ export function App() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
       <Navbar onHomeClick={handleReturnHome} />
 
-      <main className="flex-1 flex flex-col justify-center">
+      <main className={`flex-1 flex flex-col ${view === 'game' ? 'justify-start' : 'justify-center'}`}>
         {view === 'home' && <HomeView onStart={handleStartFromHome} />}
 
         {view === 'setup' && (

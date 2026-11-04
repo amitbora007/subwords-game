@@ -24,6 +24,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     message: string;
     points?: number;
   } | null>(null);
+  const [isShaking, setIsShaking] = useState<boolean>(false);
 
   // AI Playback State for live, realistic word discovery
   const [isAiPlaying, setIsAiPlaying] = useState<boolean>(false);
@@ -212,13 +213,27 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
     };
   }, [game.status, isAiPlaying, isEndingTurn, isComputerTurn, handleEndTurn]);
 
+  // Handle invalid/error submission with auto-reset and visual feedback
+  const triggerInputError = (message: string, isLockout = false) => {
+    soundEffects.playInvalidWord();
+    setFeedback({
+      type: isLockout ? 'lockout' : 'error',
+      message,
+    });
+    setIsShaking(true);
+    setCurrentWord('');
+    setTimeout(() => {
+      setIsShaking(false);
+    }, 400);
+  };
+
   // Word Submit Handler
   const handleSubmitWord = async () => {
     const trimmed = currentWord.trim().toLowerCase();
     if (!trimmed || submitting || isComputerTurn) return;
 
     if (trimmed.length < 3) {
-      setFeedback({ type: 'error', message: 'Word must be at least 3 letters' });
+      triggerInputError('Word must be at least 3 letters');
       return;
     }
 
@@ -235,17 +250,12 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         setCurrentWord('');
         await refreshGame();
       } else {
-        soundEffects.playInvalidWord();
         const isLockout = res.reason.includes('claimed by competitor');
-        setFeedback({
-          type: isLockout ? 'lockout' : 'error',
-          message: res.reason,
-        });
+        triggerInputError(res.reason, isLockout);
       }
     } catch (err) {
-      soundEffects.playInvalidWord();
       console.error('Submit word error:', err);
-      setFeedback({ type: 'error', message: 'Error submitting word. Try again.' });
+      triggerInputError('Error submitting word. Try again.');
     } finally {
       setSubmitting(false);
     }
@@ -308,9 +318,13 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
   }, [isComputerTurn, submitting, currentWord, letterCountsInInput, mainWordLetters]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-4 sm:py-8 space-y-6 animate-fadeIn">
-      {/* Top Bar: Head-to-Head Scoreboard */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 animate-fadeIn w-full">
+      {/* Responsive layout: 1-col on mobile/tablet, 12-col split on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+        {/* Left Column (Main Play Arena): Cols 1-7 */}
+        <div className="lg:col-span-7 xl:col-span-7 space-y-4 sm:space-y-5">
+          {/* Top Bar: Head-to-Head Scoreboard */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
         {/* Player 1 Card */}
         <div
           className={`p-3 sm:p-4 rounded-2xl glass-panel border transition-all ${
@@ -480,19 +494,23 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             {/* Input field */}
-            <div className="relative flex-1">
+            <div className={`relative flex-1 ${isShaking ? 'animate-shake' : ''}`}>
               <input
                 type="text"
                 readOnly
                 value={currentWord.toUpperCase()}
                 placeholder="TYPE OR TAP TILES..."
-                className="w-full py-4 px-5 rounded-2xl bg-slate-900 border-2 border-slate-700 text-center font-game text-2xl sm:text-3xl font-bold tracking-widest text-emerald-400 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+                className={`w-full py-3.5 sm:py-4 px-4 sm:px-5 rounded-2xl bg-slate-900 border-2 text-center font-game text-xl sm:text-3xl font-bold tracking-widest placeholder:text-slate-600 focus:outline-none transition-colors ${
+                  isShaking
+                    ? 'border-rose-500 text-rose-400'
+                    : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
+                }`}
               />
               {currentWord && (
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                  className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                   title="Clear input (Esc)"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -505,10 +523,10 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
               type="button"
               onClick={handleBackspace}
               disabled={!currentWord}
-              className="p-4 rounded-2xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
               title="Delete last letter"
             >
-              <Delete className="w-6 h-6" />
+              <Delete className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             {/* Submit Word Button */}
@@ -516,10 +534,11 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
               type="button"
               onClick={handleSubmitWord}
               disabled={submitting || currentWord.length < 3}
-              className="py-4 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-game font-bold text-lg flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+              className="py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-game font-bold text-base sm:text-lg flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer shrink-0"
             >
-              <Send className="w-5 h-5 fill-slate-950" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 fill-slate-950" />
               <span className="hidden sm:inline">Submit</span>
+              <kbd className="hidden lg:inline px-1 py-0.5 rounded bg-emerald-600/40 text-emerald-950 text-[10px] font-mono font-bold">↵</kbd>
             </button>
           </div>
 
@@ -539,38 +558,56 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
                 <span>{feedback.message}</span>
               </div>
               {feedback.points !== undefined && (
-                <span className="font-game font-bold">Total: {feedback.points} pts</span>
+                <span className="font-game font-bold tabular-nums">Total: {feedback.points} pts</span>
               )}
             </div>
           )}
         </div>
       ) : null}
 
-      {/* Multiplier Score breakdown for active player */}
-      <ScoreMultiplierBadge words={currentWords} score={currentScore} />
-
-      {/* Submitted Word Ledger & Competitor Claimed Words */}
-      <WordLedger
-        myWords={currentWords}
-        competitorWords={competitorWords}
-        competitorName={competitorName}
-        isComputerTurn={isComputerTurn}
-      />
-
-      {/* Turn End Button */}
-      {!isComputerTurn && !isAiPlaying && (
-        <div className="pt-2 flex justify-end">
-          <button
-            type="button"
-            onClick={handleEndTurn}
-            disabled={isEndingTurn || submitting}
-            className="px-6 py-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 disabled:opacity-50 disabled:cursor-not-allowed font-game font-bold text-base flex items-center gap-2 transition-all cursor-pointer"
-          >
-            <span>{isEndingTurn ? 'Ending Turn...' : isComputerMode ? 'Finish & Run AI Turn' : 'Finish Turn Early'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          {/* Turn End Button inside Left Column */}
+          {!isComputerTurn && !isAiPlaying && (
+            <div className="pt-2 flex items-center justify-between">
+              <span className="text-xs text-slate-500 hidden sm:inline-flex items-center gap-1.5 font-mono">
+                Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[10px]">Enter</kbd> to submit word
+              </span>
+              <button
+                type="button"
+                onClick={handleEndTurn}
+                disabled={isEndingTurn || submitting}
+                className="ml-auto px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 disabled:opacity-50 disabled:cursor-not-allowed font-game font-bold text-sm sm:text-base flex items-center gap-2 transition-all cursor-pointer shadow-md"
+              >
+                <span>{isEndingTurn ? 'Ending Turn...' : isComputerMode ? 'Finish & Run AI Turn' : 'Finish Turn Early'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Right Column (Live Score Breakdown, Word Ledger & Competitor Lockout): Cols 8-12 */}
+        <div className="lg:col-span-5 xl:col-span-5 space-y-4 sm:space-y-5 lg:sticky lg:top-20">
+          {/* Multiplier / Length Scoring Rate & Total Points Card */}
+          <ScoreMultiplierBadge words={currentWords} score={currentScore} />
+
+          {/* Submitted Word Ledger & Competitor Claimed Words */}
+          <WordLedger
+            myWords={currentWords}
+            competitorWords={competitorWords}
+            competitorName={competitorName}
+            isComputerTurn={isComputerTurn}
+          />
+
+          {/* Desktop Keyboard Quick Guide */}
+          <div className="hidden lg:flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] font-mono text-slate-400 shadow-sm">
+            <span className="font-semibold text-slate-300">Keyboard Shortcuts:</span>
+            <div className="flex items-center gap-3">
+              <span><kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-emerald-400 text-[10px]">A-Z</kbd> Type</span>
+              <span><kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-emerald-400 text-[10px]">Enter</kbd> Submit</span>
+              <span><kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-400 text-[10px]">Esc</kbd> Clear</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -79,14 +79,14 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
           <div className="space-y-3">
             <div className="flex items-baseline justify-between border-b border-slate-800 pb-2">
               <span className="text-xs text-slate-400 font-mono">TOTAL SCORE</span>
-              <span className="font-game text-3xl font-bold text-emerald-400">
+              <span className="font-game text-3xl font-bold text-emerald-400 tabular-nums">
                 {p1Score} <span className="text-xs font-sans text-slate-500">pts</span>
               </span>
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
               <span>VALID WORDS</span>
-              <span className="text-white font-bold">{p1ValidWords.length}</span>
+              <span className="text-white font-bold tabular-nums">{p1ValidWords.length}</span>
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
@@ -119,14 +119,14 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
           <div className="space-y-3">
             <div className="flex items-baseline justify-between border-b border-slate-800 pb-2">
               <span className="text-xs text-slate-400 font-mono">TOTAL SCORE</span>
-              <span className="font-game text-3xl font-bold text-emerald-400">
+              <span className="font-game text-3xl font-bold text-emerald-400 tabular-nums">
                 {p2Score} <span className="text-xs font-sans text-slate-500">pts</span>
               </span>
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
               <span>VALID WORDS</span>
-              <span className="text-white font-bold">{p2ValidWords.length}</span>
+              <span className="text-white font-bold tabular-nums">{p2ValidWords.length}</span>
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
