@@ -97,9 +97,12 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
     try {
       if (isComputerMode) {
-        // Step 1: Initialize AI live playback on the arena board
+        // Step 1: Initialize AI live playback on the arena board with its own turn countdown
         setIsAiPlaying(true);
         skipAiRef.current = false;
+        setTimeLeft(game.time_limit || 120);
+        isEndingTurnRef.current = false;
+        setIsEndingTurn(false);
         setAiStatus('Scanning letters for subwords...');
 
         // Step 2: Fetch AI target words from backend
@@ -184,7 +187,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
   // Timer Countdown Effect
   useEffect(() => {
-    if (game.status === 'finished' || isAiPlaying || isEndingTurn || isComputerTurn) {
+    if (game.status === 'finished' || isEndingTurn) {
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -199,7 +202,11 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
             clearInterval(timerRef.current);
             timerRef.current = null;
           }
-          handleEndTurn();
+          if (isAiPlaying) {
+            skipAiRef.current = true;
+          } else {
+            handleEndTurn();
+          }
           return 0;
         }
         return prev - 1;
@@ -212,7 +219,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         timerRef.current = null;
       }
     };
-  }, [game.status, isAiPlaying, isEndingTurn, isComputerTurn, handleEndTurn]);
+  }, [game.status, isAiPlaying, isEndingTurn, handleEndTurn]);
 
   // Handle invalid/error submission with auto-reset and visual feedback
   const triggerInputError = (message: string, isLockout = false) => {
@@ -440,14 +447,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
           </div>
 
           <div className="shrink-0">
-            {isAiPlaying ? (
-              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[11px] sm:text-xs font-mono font-semibold animate-pulse">
-                <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-                <span>AI Opponent</span>
-              </div>
-            ) : (
-              <TimerRing timeLeft={timeLeft} totalTime={game.time_limit || 120} />
-            )}
+            <TimerRing timeLeft={timeLeft} totalTime={game.time_limit || 120} />
           </div>
         </div>
 
