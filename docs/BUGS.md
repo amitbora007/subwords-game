@@ -47,6 +47,7 @@ pie title Remediation Status
 | **`BUG-011`** | **LOW** | Render blueprint rejected: `services[1].plan no such plan free` | Removed invalid `plan` attribute from static site service in `render.yaml` (Render static sites are free/CDN by default with no compute plans). | **RESOLVED** |
 | **`BUG-012`** | **HIGH** | Client-side API failure on Render (`https://subwords-backend/` unresolved) | Render internal `host` was supplied to client SPA; updated `render.yaml` to explicit `https://subwords-backend.onrender.com` and added auto-domain resolver in `api.ts`. | **RESOLVED** |
 | **`BUG-013`** | **HIGH** | Score multiplied by word count instead of direct length sum | Fixed in `GameService.calculate_multiplier_score`: points are `1 * length` per word, and total score is $\sum \text{Length}(W_i)$ (e.g. 6+4+3=13, 3*5=15). Updated badges and ResultsView. | **RESOLVED** |
+| **`BUG-014`** | **MEDIUM** | Active gameplay UI showed obsolete formula `(Sum L) × (N)` in WordLedger and ResultsView | Fixed in `WordLedger.tsx`, `GameView.tsx`, and `ResultsView.tsx`: replaced header label with `1 pt per letter`, updated word pills to `+N pts` across active gameplay and final results, and added `points` to submit endpoint response. | **RESOLVED** |
 
 ---
 

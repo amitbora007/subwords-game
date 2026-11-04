@@ -128,6 +128,7 @@ class GameController:
             "word_count": word_count,
             "base_points": base_points,
             "total_score": total_score,
+            "points": word_len,
         }
 
     async def switch_turn(self, input_data: SwitchTurn) -> Dict[str, Any]:

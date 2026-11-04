@@ -142,7 +142,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
           setAiRevealedWords(runningRevealed);
           setFeedback({
             type: 'success',
-            message: `AI found "${wordText.toUpperCase()}"! +${wordObj.length} letters`,
+            message: `AI found "${wordText.toUpperCase()}"! +${wordObj.length} pts`,
             points: liveScore,
           });
           setAiTypingWord('');
@@ -229,7 +229,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         soundEffects.playValidWord();
         setFeedback({
           type: 'success',
-          message: `Valid word! +${res.length} letters`,
+          message: `Valid word! +${res.length || trimmed.length} pts`,
           points: res.total_score,
         });
         setCurrentWord('');
@@ -471,7 +471,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
                 <span>{feedback.message}</span>
               </div>
               {feedback.points !== undefined && (
-                <span className="font-game font-bold text-emerald-400">Score: {feedback.points} pts</span>
+                <span className="font-game font-bold text-emerald-400">Total: {feedback.points} pts</span>
               )}
             </div>
           )}
@@ -539,7 +539,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
                 <span>{feedback.message}</span>
               </div>
               {feedback.points !== undefined && (
-                <span className="font-game font-bold">Score: {feedback.points} pts</span>
+                <span className="font-game font-bold">Total: {feedback.points} pts</span>
               )}
             </div>
           )}

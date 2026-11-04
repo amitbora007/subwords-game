@@ -31,7 +31,7 @@ export const WordLedger: React.FC<WordLedgerProps> = ({
               {validWords.length}
             </span>
           </div>
-          <span className="text-xs text-slate-400">Score = (Sum L) × (N)</span>
+          <span className="text-xs text-emerald-400 font-mono font-semibold">1 pt per letter</span>
         </div>
 
         {myWords.length === 0 ? (
@@ -58,7 +58,7 @@ export const WordLedger: React.FC<WordLedgerProps> = ({
                 <span className="font-game tracking-wider uppercase">{item.word}</span>
                 {item.valid && (
                   <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
-                    +{item.points}
+                    +{(item.length || item.points || item.word.length)} pts
                   </span>
                 )}
               </div>

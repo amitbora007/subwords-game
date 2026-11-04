@@ -156,7 +156,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
                 >
                   <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                   <span>{w.word}</span>
-                  <span className="text-[10px] text-slate-400">({w.length || w.word.length}L)</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
+                    +{w.length || w.word.length} pts
+                  </span>
                 </span>
               ))
             )}
@@ -180,7 +182,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
                 >
                   <CheckCircle2 className="w-3 h-3 text-amber-400" />
                   <span>{w.word}</span>
-                  <span className="text-[10px] text-slate-400">({w.length || w.word.length}L)</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300">
+                    +{w.length || w.word.length} pts
+                  </span>
                 </span>
               ))
             )}
