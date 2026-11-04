@@ -40,53 +40,53 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
   const p2ValidWords = game.player2_words.filter((w) => w.valid);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8 animate-fadeIn">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-12 space-y-6 sm:space-y-8 animate-fadeIn">
       {/* Victory Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex p-4 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-xl shadow-amber-500/10">
-          <Trophy className="w-12 h-12" />
+      <div className="text-center space-y-2 sm:space-y-3">
+        <div className="inline-flex p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-xl shadow-amber-500/10">
+          <Trophy className="w-10 h-10 sm:w-12 sm:h-12" />
         </div>
-        <h1 className="font-game text-4xl sm:text-5xl font-bold tracking-tight text-white">
+        <h1 className="font-game text-3xl sm:text-5xl font-bold tracking-tight text-white">
           {winnerName}
         </h1>
-        <p className="text-slate-400 text-sm">
+        <p className="text-slate-400 text-xs sm:text-sm">
           Base Word: <span className="text-emerald-400 font-game font-bold tracking-widest uppercase">{game.main_word}</span>
         </p>
       </div>
 
       {/* Head-to-Head Comparative Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
         {/* Player 1 Outcome Card */}
         <div
-          className={`p-6 rounded-3xl glass-panel border transition-all ${
+          className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl glass-panel border transition-all ${
             p1Wins
-              ? 'border-amber-400 bg-amber-500/10 shadow-2xl shadow-amber-500/20 scale-[1.02]'
+              ? 'border-amber-400 bg-amber-500/10 shadow-2xl shadow-amber-500/20 sm:scale-[1.02]'
               : 'border-slate-800'
           }`}
         >
-          <div className="flex items-center justify-between mb-4">
-            <span className="font-game text-xl font-bold text-white flex items-center gap-2">
-              <Award className={`w-5 h-5 ${p1Wins ? 'text-amber-400' : 'text-slate-500'}`} />
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <span className="font-game text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+              <Award className={`w-4 h-4 sm:w-5 sm:h-5 ${p1Wins ? 'text-amber-400' : 'text-slate-500'}`} />
               {game.player1_name}
             </span>
             {p1Wins && (
-              <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30">
+              <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30">
                 VICTORY
               </span>
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5 sm:space-y-3">
             <div className="flex items-baseline justify-between border-b border-slate-800 pb-2">
               <span className="text-xs text-slate-400 font-mono">TOTAL SCORE</span>
-              <span className="font-game text-3xl font-bold text-emerald-400">
+              <span className="font-game text-2xl sm:text-3xl font-bold text-emerald-400 tabular-nums">
                 {p1Score} <span className="text-xs font-sans text-slate-500">pts</span>
               </span>
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
               <span>VALID WORDS</span>
-              <span className="text-white font-bold">{p1ValidWords.length}</span>
+              <span className="text-white font-bold tabular-nums">{p1ValidWords.length}</span>
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
@@ -98,35 +98,35 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
 
         {/* Player 2 Outcome Card */}
         <div
-          className={`p-6 rounded-3xl glass-panel border transition-all ${
+          className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl glass-panel border transition-all ${
             p2Wins
-              ? 'border-amber-400 bg-amber-500/10 shadow-2xl shadow-amber-500/20 scale-[1.02]'
+              ? 'border-amber-400 bg-amber-500/10 shadow-2xl shadow-amber-500/20 sm:scale-[1.02]'
               : 'border-slate-800'
           }`}
         >
-          <div className="flex items-center justify-between mb-4">
-            <span className="font-game text-xl font-bold text-white flex items-center gap-2">
-              <Award className={`w-5 h-5 ${p2Wins ? 'text-amber-400' : 'text-slate-500'}`} />
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <span className="font-game text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+              <Award className={`w-4 h-4 sm:w-5 sm:h-5 ${p2Wins ? 'text-amber-400' : 'text-slate-500'}`} />
               {game.player2_name}
             </span>
             {p2Wins && (
-              <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30">
+              <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30">
                 VICTORY
               </span>
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2.5 sm:space-y-3">
             <div className="flex items-baseline justify-between border-b border-slate-800 pb-2">
               <span className="text-xs text-slate-400 font-mono">TOTAL SCORE</span>
-              <span className="font-game text-3xl font-bold text-emerald-400">
+              <span className="font-game text-2xl sm:text-3xl font-bold text-emerald-400 tabular-nums">
                 {p2Score} <span className="text-xs font-sans text-slate-500">pts</span>
               </span>
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">
               <span>VALID WORDS</span>
-              <span className="text-white font-bold">{p2ValidWords.length}</span>
+              <span className="text-white font-bold tabular-nums">{p2ValidWords.length}</span>
             </div>
 
             <div className="flex justify-between text-xs font-mono text-slate-400">

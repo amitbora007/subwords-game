@@ -3,8 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-slate-950 text-slate-100 font-sans min-h-screen overflow-x-hidden;
+  }
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 

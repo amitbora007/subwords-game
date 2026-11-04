@@ -318,37 +318,37 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
   }, [isComputerTurn, submitting, currentWord, letterCountsInInput, mainWordLetters]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-4 sm:py-8 space-y-6 animate-fadeIn">
+    <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 sm:py-8 space-y-4 sm:space-y-6 animate-fadeIn">
       {/* Top Bar: Head-to-Head Scoreboard */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-6">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-6">
         {/* Player 1 Card */}
         <div
-          className={`p-3 sm:p-4 rounded-2xl glass-panel border transition-all ${
+          className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl glass-panel border transition-all ${
             currentPlayerNum === 1
               ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
               : 'border-slate-800 opacity-70'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                <User className="w-4 h-4" />
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
-              <span className="font-game font-bold text-sm sm:text-base text-white truncate max-w-[100px] sm:max-w-none">
+              <span className="font-game font-bold text-xs sm:text-base text-white truncate">
                 {game.player1_name}
               </span>
             </div>
             {currentPlayerNum === 1 && (
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-bold">
-                Active Turn
+              <span className="text-[9px] sm:text-[10px] font-mono uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-bold whitespace-nowrap shrink-0">
+                Active
               </span>
             )}
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-game text-2xl sm:text-3xl font-bold text-white">
-              {game.player1_score} <span className="text-xs font-sans text-slate-400">pts</span>
+          <div className="mt-1.5 sm:mt-2 flex items-baseline justify-between">
+            <span className="font-game text-xl sm:text-3xl font-bold text-white tabular-nums">
+              {game.player1_score} <span className="text-[10px] sm:text-xs font-sans text-slate-400">pts</span>
             </span>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-[11px] sm:text-xs font-mono text-slate-400 tabular-nums">
               {game.player1_words.filter((w) => w.valid).length} words
             </span>
           </div>
@@ -356,34 +356,34 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
         {/* Player 2 Card */}
         <div
-          className={`p-3 sm:p-4 rounded-2xl glass-panel border transition-all ${
+          className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl glass-panel border transition-all ${
             currentPlayerNum === 2
               ? 'border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10'
               : 'border-slate-800 opacity-70'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                {isComputerMode ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                {isComputerMode ? <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               </div>
-              <span className="font-game font-bold text-sm sm:text-base text-white truncate max-w-[100px] sm:max-w-none">
+              <span className="font-game font-bold text-xs sm:text-base text-white truncate">
                 {game.player2_name}
               </span>
             </div>
             {currentPlayerNum === 2 && (
-              <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full font-bold ${
+              <span className={`text-[9px] sm:text-[10px] font-mono uppercase px-1.5 sm:px-2 py-0.5 rounded-full font-bold whitespace-nowrap shrink-0 ${
                 isAiPlaying ? 'bg-amber-400 text-slate-950 animate-pulse' : 'bg-amber-500 text-slate-950'
               }`}>
-                {isAiPlaying ? 'AI Playing Live' : 'Active Turn'}
+                {isAiPlaying ? 'AI Playing' : 'Active'}
               </span>
             )}
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="font-game text-2xl sm:text-3xl font-bold text-white">
-              {isAiPlaying ? aiLiveScore : game.player2_score} <span className="text-xs font-sans text-slate-400">pts</span>
+          <div className="mt-1.5 sm:mt-2 flex items-baseline justify-between">
+            <span className="font-game text-xl sm:text-3xl font-bold text-white tabular-nums">
+              {isAiPlaying ? aiLiveScore : game.player2_score} <span className="text-[10px] sm:text-xs font-sans text-slate-400">pts</span>
             </span>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-[11px] sm:text-xs font-mono text-slate-400 tabular-nums">
               {isAiPlaying ? aiRevealedWords.length : game.player2_words.filter((w) => w.valid).length} words
             </span>
           </div>
@@ -391,27 +391,31 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
       </div>
 
       {/* Main Word Banner & Live Timer / AI Status */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 text-center relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 uppercase tracking-widest">
-            <span className={`font-game font-bold text-sm tracking-normal mr-2 ${isAiPlaying ? 'text-amber-400' : 'text-emerald-400'}`}>
+      <div className="glass-panel rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 lg:p-7 border border-slate-800 text-center relative overflow-hidden">
+        <div className="flex items-center justify-between gap-2 mb-3 sm:mb-6">
+          <div className="text-left min-w-0">
+            <div className={`font-game font-bold text-sm sm:text-base truncate ${isAiPlaying ? 'text-amber-400' : 'text-emerald-400'}`}>
               {currentPlayerName}'s Turn
-            </span>
-            <span>• Base Word ({game.main_word.length} Letters)</span>
+            </div>
+            <div className="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-wider">
+              Base Word • <span className="tabular-nums">{game.main_word.length}</span> Letters
+            </div>
           </div>
 
-          {isAiPlaying ? (
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-mono font-semibold animate-pulse">
-              <Bot className="w-4 h-4 text-amber-400" />
-              <span>AI Opponent Active</span>
-            </div>
-          ) : (
-            <TimerRing timeLeft={timeLeft} totalTime={game.time_limit || 120} />
-          )}
+          <div className="shrink-0">
+            {isAiPlaying ? (
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[11px] sm:text-xs font-mono font-semibold animate-pulse">
+                <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                <span>AI Opponent</span>
+              </div>
+            ) : (
+              <TimerRing timeLeft={timeLeft} totalTime={game.time_limit || 120} />
+            )}
+          </div>
         </div>
 
         {/* Display Main Word Letters as interactive tiles */}
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-2">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 xs:gap-2 sm:gap-3 py-1 sm:py-2">
           {mainWordLetters.letters.map((letter, idx) => {
             const count = mainWordLetters.counts[letter] || 1;
             const inInput = letterCountsInInput[letter] || 0;
@@ -430,10 +434,10 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
           })}
         </div>
 
-        <p className="text-xs text-slate-500 mt-4">
+        <p className="text-[11px] sm:text-xs text-slate-500 mt-2 sm:mt-4">
           {isAiPlaying
             ? 'Watch the AI opponent analyze anagrams and build subwords in real-time'
-            : 'Click tiles or type directly on keyboard • Min 3 letters'}
+            : 'Click tiles or type on keyboard • Min 3 letters'}
         </p>
       </div>
 
@@ -488,7 +492,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         </div>
       ) : !isComputerTurn ? (
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Input field */}
             <div className={`relative flex-1 ${isShaking ? 'animate-shake' : ''}`}>
               <input
@@ -496,7 +500,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
                 readOnly
                 value={currentWord.toUpperCase()}
                 placeholder="TYPE OR TAP TILES..."
-                className={`w-full py-4 px-5 rounded-2xl bg-slate-900 border-2 text-center font-game text-2xl sm:text-3xl font-bold tracking-widest placeholder:text-slate-600 focus:outline-none transition-colors ${
+                className={`w-full py-2.5 px-3 sm:py-4 sm:px-5 rounded-xl sm:rounded-2xl bg-slate-900 border-2 text-center font-game text-xl xs:text-2xl sm:text-3xl font-bold tracking-wider sm:tracking-widest placeholder:text-slate-600 placeholder:text-xs xs:placeholder:text-sm sm:placeholder:text-base md:placeholder:text-lg placeholder:tracking-normal focus:outline-none transition-colors ${
                   isShaking
                     ? 'border-rose-500 text-rose-400'
                     : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
@@ -506,10 +510,10 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                  className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                   title="Clear input (Esc)"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               )}
             </div>
@@ -519,10 +523,10 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
               type="button"
               onClick={handleBackspace}
               disabled={!currentWord}
-              className="p-4 rounded-2xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="h-[46px] w-[46px] sm:h-[58px] sm:w-[58px] flex items-center justify-center shrink-0 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95"
               title="Delete last letter"
             >
-              <Delete className="w-6 h-6" />
+              <Delete className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             {/* Submit Word Button */}
@@ -530,9 +534,9 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
               type="button"
               onClick={handleSubmitWord}
               disabled={submitting || currentWord.length < 3}
-              className="py-4 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-game font-bold text-lg flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+              className="h-[46px] sm:h-[58px] px-3.5 sm:px-6 rounded-xl sm:rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-game font-bold text-sm sm:text-lg flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95 shrink-0"
             >
-              <Send className="w-5 h-5 fill-slate-950" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 fill-slate-950" />
               <span className="hidden sm:inline">Submit</span>
             </button>
           </div>
@@ -540,7 +544,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
           {/* Inline Feedback Banner */}
           {feedback && (
             <div
-              className={`p-3 rounded-xl border text-sm flex items-center justify-between font-medium animate-fadeIn ${
+              className={`p-2.5 sm:p-3 rounded-xl border text-xs sm:text-sm flex items-center justify-between font-medium animate-fadeIn ${
                 feedback.type === 'success'
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
                   : feedback.type === 'lockout'
@@ -549,11 +553,11 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
               }`}
             >
               <div className="flex items-center gap-2">
-                {feedback.type === 'lockout' && <AlertTriangle className="w-4 h-4 text-rose-400" />}
+                {feedback.type === 'lockout' && <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400 shrink-0" />}
                 <span>{feedback.message}</span>
               </div>
               {feedback.points !== undefined && (
-                <span className="font-game font-bold">Total: {feedback.points} pts</span>
+                <span className="font-game font-bold tabular-nums">Total: {feedback.points} pts</span>
               )}
             </div>
           )}
@@ -573,12 +577,12 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
       {/* Turn End Button */}
       {!isComputerTurn && !isAiPlaying && (
-        <div className="pt-2 flex justify-end">
+        <div className="pt-1 sm:pt-2 flex justify-end">
           <button
             type="button"
             onClick={handleEndTurn}
             disabled={isEndingTurn || submitting}
-            className="px-6 py-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 disabled:opacity-50 disabled:cursor-not-allowed font-game font-bold text-base flex items-center gap-2 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-5 sm:px-6 py-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500/50 hover:bg-amber-500/10 text-slate-300 hover:text-amber-300 disabled:opacity-50 disabled:cursor-not-allowed font-game font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
           >
             <span>{isEndingTurn ? 'Ending Turn...' : isComputerMode ? 'Finish & Run AI Turn' : 'Finish Turn Early'}</span>
             <ArrowRight className="w-4 h-4" />

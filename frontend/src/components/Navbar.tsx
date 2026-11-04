@@ -59,10 +59,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onHomeClick }) => {
       {/* Rules Modal */}
       {showRules && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-          <div className="glass-panel w-full max-w-lg rounded-2xl p-6 relative border border-slate-700 shadow-2xl">
+          <div className="glass-panel w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-4 sm:p-6 relative border border-slate-700 shadow-2xl">
             <button
               onClick={() => setShowRules(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
