@@ -639,7 +639,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
