@@ -49,6 +49,7 @@ pie title Remediation Status
 | **`BUG-013`** | **HIGH** | Score multiplied by word count instead of direct length sum | Fixed in `GameService.calculate_multiplier_score`: points are `1 * length` per word, and total score is $\sum \text{Length}(W_i)$ (e.g. 6+4+3=13, 3*5=15). Updated badges and ResultsView. | **RESOLVED** |
 | **`BUG-014`** | **MEDIUM** | Active gameplay UI showed obsolete formula `(Sum L) × (N)` in WordLedger and ResultsView | Fixed in `WordLedger.tsx`, `GameView.tsx`, and `ResultsView.tsx`: replaced header label with `1 pt per letter`, updated word pills to `+N pts` across active gameplay and final results, and added `points` to submit endpoint response. | **RESOLVED** |
 | **`BUG-015`** | **MEDIUM** | Input field retained invalid word after submission instead of clearing | Implemented `triggerInputError` in `GameView.tsx` with automatic input buffer reset (`setCurrentWord('')`), 400ms shake animation (`isShaking`), and auditory buzz cue on invalid/error submissions. | **RESOLVED** |
+| **`BUG-016`** | **MEDIUM** | Widescreen empty gutters and dynamic center box width/height layout jumping | Fixed with 12-column responsive dashboard (`max-w-7xl`), `scrollbar-gutter: stable`, vertical anchoring (`justify-start`), and tabular number formatting (`tabular-nums font-mono`). | **RESOLVED** |
 
 ---
 

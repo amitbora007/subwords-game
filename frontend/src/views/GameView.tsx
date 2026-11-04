@@ -588,6 +588,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
             >
               <Send className="w-4 h-4 sm:w-5 sm:h-5 fill-slate-950" />
               <span className="hidden sm:inline">Submit</span>
+              <kbd className="hidden lg:inline px-1 py-0.5 rounded bg-emerald-600/40 text-emerald-950 text-[10px] font-mono font-bold">↵</kbd>
             </button>
           </form>
 
@@ -638,7 +639,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };
