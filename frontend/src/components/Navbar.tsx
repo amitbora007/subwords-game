@@ -19,7 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onHomeClick }) => {
             onClick={onHomeClick}
             className="flex items-center gap-2.5 text-left group focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded-lg p-1"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg border border-emerald-400/30 group-hover:scale-105 transition-transform">
               <Gamepad2 className="w-6 h-6 text-slate-950" />
             </div>
             <div>
@@ -63,6 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onHomeClick }) => {
             <button
               onClick={() => setShowRules(false)}
               className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              aria-label="Close rules dialog"
             >
               <X className="w-5 h-5" />
             </button>

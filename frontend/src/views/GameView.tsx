@@ -37,6 +37,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
   const timerRef = useRef<any>(null);
   const isEndingTurnRef = useRef<boolean>(false);
+  const isSubmittingRef = useRef<boolean>(false);
   const isComputerMode = game.mode === 'pvc';
   const isComputerTurn = isComputerMode && (game.current_player === 2 || isAiPlaying);
 
@@ -182,6 +183,10 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
       setIsAiPlaying(false);
       isEndingTurnRef.current = false;
       setIsEndingTurn(false);
+      setFeedback({
+        type: 'error',
+        message: 'Network issue completing turn. Please try again.',
+      });
     }
   }, [game.id, game.difficulty, isComputerMode, onGameOver]);
 
@@ -238,13 +243,14 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
   // Word Submit Handler
   const handleSubmitWord = async () => {
     const trimmed = currentWord.trim().toLowerCase();
-    if (!trimmed || submitting || isComputerTurn) return;
+    if (!trimmed || submitting || isSubmittingRef.current || isComputerTurn) return;
 
     if (trimmed.length < 3) {
       triggerInputError('Word must be at least 3 letters');
       return;
     }
 
+    isSubmittingRef.current = true;
     setSubmitting(true);
     try {
       const res = await gameApi.submitWord(game.id, trimmed, currentPlayerNum);
@@ -265,6 +271,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
       console.error('Submit word error:', err);
       triggerInputError('Error submitting word. Try again.');
     } finally {
+      isSubmittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -369,7 +376,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         <div
           className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl glass-panel border transition-all ${
             currentPlayerNum === 1
-              ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
+              ? 'border-emerald-500 bg-emerald-500/10 shadow-lg'
               : 'border-slate-800 opacity-70'
           }`}
         >
@@ -402,7 +409,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
         <div
           className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl glass-panel border transition-all ${
             currentPlayerNum === 2
-              ? 'border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10'
+              ? 'border-amber-500 bg-amber-500/10 shadow-lg'
               : 'border-slate-800 opacity-70'
           }`}
         >
@@ -481,7 +488,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
       {/* Word Input & Controls Area */}
       {isAiPlaying ? (
         <div className="space-y-3 animate-fadeIn">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-slate-900 border-2 border-amber-500/40 shadow-xl shadow-amber-500/5">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-slate-900 border-2 border-amber-500/40 shadow-xl">
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
                 <Bot className="w-7 h-7 animate-pulse" />
@@ -516,7 +523,11 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
 
           {/* AI Inline Feedback Banner */}
           {feedback && (
-            <div className="p-3.5 rounded-xl border text-sm flex items-center justify-between font-medium animate-fadeIn bg-emerald-500/10 border-emerald-500/30 text-emerald-300">
+            <div
+              role="status"
+              aria-live="polite"
+              className="p-3.5 rounded-xl border text-sm flex items-center justify-between font-medium animate-fadeIn bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+            >
               <div className="flex items-center gap-2">
                 <Bot className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>{feedback.message}</span>
@@ -546,6 +557,8 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
                 autoCorrect="off"
                 autoComplete="off"
                 spellCheck={false}
+                maxLength={mainWordLetters.letters.length}
+                aria-label="Build subword from available root word letters"
                 enterKeyHint="send"
                 value={currentWord.toUpperCase()}
                 onChange={handleInputChange}
@@ -563,6 +576,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
                   onClick={handleClear}
                   className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                   title="Clear input (Esc)"
+                  aria-label="Clear input (Esc)"
                 >
                   <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
@@ -574,6 +588,7 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
               type="button"
               onClick={handleBackspace}
               disabled={!currentWord}
+              aria-label="Delete last letter"
               className="h-[46px] w-[46px] sm:h-[58px] sm:w-[58px] flex items-center justify-center shrink-0 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95"
               title="Delete last letter"
             >
@@ -584,7 +599,8 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
             <button
               type="submit"
               disabled={submitting || currentWord.length < 3}
-              className="h-[46px] sm:h-[58px] px-3.5 sm:px-6 rounded-xl sm:rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-game font-bold text-sm sm:text-lg flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95 shrink-0"
+              aria-label="Submit word"
+              className="h-[46px] sm:h-[58px] px-3.5 sm:px-6 rounded-xl sm:rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-game font-bold text-sm sm:text-lg flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg transition-all cursor-pointer active:scale-95 shrink-0"
             >
               <Send className="w-4 h-4 sm:w-5 sm:h-5 fill-slate-950" />
               <span className="hidden sm:inline">Submit</span>
@@ -595,6 +611,8 @@ export const GameView: React.FC<GameViewProps> = ({ initialGame, onGameOver }) =
           {/* Inline Feedback Banner */}
           {feedback && (
             <div
+              role="status"
+              aria-live="polite"
               className={`p-2.5 sm:p-3 rounded-xl border text-xs sm:text-sm flex items-center justify-between font-medium animate-fadeIn ${
                 feedback.type === 'success'
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
