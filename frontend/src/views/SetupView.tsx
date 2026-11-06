@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { GameMode, Difficulty, GameState } from '../types/game';
 import { gameApi } from '../services/api';
 import { ArrowLeft, Bot, Users, Clock, Play, User, AlertCircle, Loader2 } from 'lucide-react';
@@ -23,8 +23,11 @@ export const SetupView: React.FC<SetupViewProps> = ({
   const [player2Name, setPlayer2Name] = useState<string>('Player 2');
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const isLoadingRef = useRef<boolean>(false);
 
   const handleStartGame = async () => {
+    if (isLoadingRef.current) return;
+
     if (!player1Name.trim()) {
       setErrorMsg('Please enter a name for Player 1');
       return;
@@ -34,6 +37,7 @@ export const SetupView: React.FC<SetupViewProps> = ({
       return;
     }
 
+    isLoadingRef.current = true;
     setLoading(true);
     setErrorMsg(null);
 
@@ -51,6 +55,7 @@ export const SetupView: React.FC<SetupViewProps> = ({
       console.error('Failed to create game:', err);
       setErrorMsg(err.response?.data?.detail || 'Failed to create game. Please check server connection.');
     } finally {
+      isLoadingRef.current = false;
       setLoading(false);
     }
   };
@@ -90,7 +95,7 @@ export const SetupView: React.FC<SetupViewProps> = ({
               onClick={() => setMode('pvc')}
               className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border text-left transition-all flex items-center gap-3 cursor-pointer ${
                 mode === 'pvc'
-                  ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
+                  ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-lg'
                   : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
               }`}
             >
@@ -108,7 +113,7 @@ export const SetupView: React.FC<SetupViewProps> = ({
               onClick={() => setMode('pvp')}
               className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border text-left transition-all flex items-center gap-3 cursor-pointer ${
                 mode === 'pvp'
-                  ? 'bg-amber-500/15 border-amber-500 text-white shadow-lg shadow-amber-500/10'
+                  ? 'bg-amber-500/15 border-amber-500 text-white shadow-lg'
                   : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
               }`}
             >
@@ -137,7 +142,7 @@ export const SetupView: React.FC<SetupViewProps> = ({
                   onClick={() => setDifficulty(diff)}
                   className={`py-2.5 sm:py-3 px-2 sm:px-3 rounded-xl border text-center transition-all cursor-pointer ${
                     difficulty === diff
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold shadow-md shadow-emerald-500/10'
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold shadow-md'
                       : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
@@ -169,7 +174,7 @@ export const SetupView: React.FC<SetupViewProps> = ({
                 onClick={() => setTimeLimit(seconds)}
                 className={`py-2 sm:py-2.5 rounded-xl border text-center text-xs font-mono font-bold transition-all cursor-pointer ${
                   timeLimit === seconds
-                    ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md shadow-amber-500/10'
+                    ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md'
                     : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
                 }`}
               >
@@ -196,7 +201,10 @@ export const SetupView: React.FC<SetupViewProps> = ({
                   value={player1Name}
                   onChange={(e) => setPlayer1Name(e.target.value)}
                   placeholder="Enter Player 1 name"
-                  className="bg-transparent text-white text-sm w-full focus:outline-none"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  className="bg-transparent text-white text-base w-full focus:outline-none"
                 />
               </div>
             </div>
@@ -212,7 +220,10 @@ export const SetupView: React.FC<SetupViewProps> = ({
                     value={player2Name}
                     onChange={(e) => setPlayer2Name(e.target.value)}
                     placeholder="Enter Player 2 name"
-                    className="bg-transparent text-white text-sm w-full focus:outline-none"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    className="bg-transparent text-white text-base w-full focus:outline-none"
                   />
                 </div>
               </div>
@@ -225,7 +236,7 @@ export const SetupView: React.FC<SetupViewProps> = ({
           type="button"
           disabled={loading}
           onClick={handleStartGame}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 text-slate-950 font-game text-xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 transition-all cursor-pointer"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 text-slate-950 font-game text-xl font-bold flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer"
         >
           {loading ? (
             <>

@@ -43,7 +43,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
     <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-12 space-y-6 sm:space-y-8 animate-fadeIn">
       {/* Victory Header */}
       <div className="text-center space-y-2 sm:space-y-3">
-        <div className="inline-flex p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-xl shadow-amber-500/10">
+        <div className="inline-flex p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-xl">
           <Trophy className="w-10 h-10 sm:w-12 sm:h-12" />
         </div>
         <h1 className="font-game text-3xl sm:text-5xl font-bold tracking-tight text-white">
@@ -60,17 +60,17 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
         <div
           className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl glass-panel border transition-all ${
             p1Wins
-              ? 'border-amber-400 bg-amber-500/10 shadow-2xl shadow-amber-500/20 sm:scale-[1.02]'
+              ? 'border-amber-400 bg-amber-500/10 shadow-2xl sm:scale-[1.02]'
               : 'border-slate-800'
           }`}
         >
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <span className="font-game text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-              <Award className={`w-4 h-4 sm:w-5 sm:h-5 ${p1Wins ? 'text-amber-400' : 'text-slate-500'}`} />
-              {game.player1_name}
+          <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+            <span className="font-game text-lg sm:text-xl font-bold text-white flex items-center gap-2 min-w-0">
+              <Award className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${p1Wins ? 'text-amber-400' : 'text-slate-500'}`} />
+              <span className="truncate">{game.player1_name}</span>
             </span>
             {p1Wins && (
-              <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30">
+              <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30 shrink-0">
                 VICTORY
               </span>
             )}
@@ -100,17 +100,17 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
         <div
           className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl glass-panel border transition-all ${
             p2Wins
-              ? 'border-amber-400 bg-amber-500/10 shadow-2xl shadow-amber-500/20 sm:scale-[1.02]'
+              ? 'border-amber-400 bg-amber-500/10 shadow-2xl sm:scale-[1.02]'
               : 'border-slate-800'
           }`}
         >
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <span className="font-game text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-              <Award className={`w-4 h-4 sm:w-5 sm:h-5 ${p2Wins ? 'text-amber-400' : 'text-slate-500'}`} />
-              {game.player2_name}
+          <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+            <span className="font-game text-lg sm:text-xl font-bold text-white flex items-center gap-2 min-w-0">
+              <Award className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${p2Wins ? 'text-amber-400' : 'text-slate-500'}`} />
+              <span className="truncate">{game.player2_name}</span>
             </span>
             {p2Wins && (
-              <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30">
+              <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold border border-amber-500/30 shrink-0">
                 VICTORY
               </span>
             )}
@@ -196,7 +196,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ game, onPlayAgain, onH
       <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
         <button
           onClick={onPlayAgain}
-          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-game text-lg font-bold flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 transition-all cursor-pointer"
+          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-game text-lg font-bold flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer"
         >
           <RefreshCw className="w-5 h-5 text-slate-950" />
           <span>Play Again</span>

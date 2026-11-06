@@ -18,7 +18,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onStart }) => {
 
         <h1 className="font-game text-3xl sm:text-6xl font-bold tracking-tight text-white leading-tight">
           Build Subwords. <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-400">
+          <span className="text-emerald-400">
             Multiply Your Score.
           </span>
         </h1>
@@ -31,7 +31,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onStart }) => {
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             onClick={() => onStart()}
-            className="w-full sm:w-auto px-8 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-game text-lg sm:text-xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-8 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-game text-lg sm:text-xl font-bold flex items-center justify-center gap-3 shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
           >
             <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
             <span>Launch Game</span>
